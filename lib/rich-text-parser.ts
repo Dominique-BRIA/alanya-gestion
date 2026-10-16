@@ -1,6 +1,19 @@
-/** Marqueurs inline — alignés sur Alanya/lib/core/utils/rich_text_parser.dart */
+/**
+ * Mise en forme du texte — la CONVENTION D'ALANYA WORK, pas celle d'origine.
+ *
+ * Tout vient de `lib/mise-en-forme.ts`, copie exacte du client web
+ * (STAGE-WEB `src/lib/mise-en-forme.ts`), lui-même miroir du mobile :
+ *
+ *   *gras*   _italique_   ~barré~   __souligné__   `manuscrit`
+ *
+ * La console d'origine utilisait `=souligné=` et `#manuscrit#` : un message
+ * officiel écrit ainsi arrivait avec ses `=` et ses `#` dans l'application.
+ * Ce fichier ne garde que l'interface attendue par les composants
+ * (`parseRichSpans`, `stripMarkers`, `applyFormat`).
+ */
+import { analyseMiseEnForme, appliquerMarqueur, sansMarqueurs, type NoeudTexte, type StyleTexte } from "@/lib/mise-en-forme";
 
-export type RichTextMarker = "*" | "_" | "~" | "=" | "#";
+export type RichTextMarker = "*" | "_" | "~" | "__" | "`";
 
 export interface RichTextSegment {
   text: string;
@@ -12,18 +25,17 @@ export interface RichTextSegment {
   link?: string;
 }
 
-const URL_REGEXP = /((?:https?:\/\/|www\.)[^\s]+)/gi;
+type Style = Omit<RichTextSegment, "text">;
 
-const MARKERS: Record<
-  string,
-  (style: Omit<RichTextSegment, "text">) => Omit<RichTextSegment, "text">
-> = {
-  "*": (s) => ({ ...s, bold: true }),
-  _: (s) => ({ ...s, italic: true }),
-  "~": (s) => ({ ...s, strike: true }),
-  "=": (s) => ({ ...s, underline: true }),
-  "#": (s) => ({ ...s, handwriting: true }),
+const STYLE: Record<StyleTexte, keyof Style> = {
+  gras: "bold",
+  italique: "italic",
+  barre: "strike",
+  souligne: "underline",
+  manuscrit: "handwriting",
 };
+
+const URL_REGEXP = /((?:https?:\/\/|www\.)[^\s]+)/gi;
 
 function trimUrlTail(url: string): string {
   const tail = ".,;:!?)]}'\"";
@@ -32,103 +44,52 @@ function trimUrlTail(url: string): string {
   return url.slice(0, end);
 }
 
-function findClose(text: string, from: number, marker: string): number {
-  if (from >= text.length || text[from] === " ") return -1;
-  for (let j = from; j < text.length; j++) {
-    if (text[j] === marker) {
-      return j === from ? -1 : j;
-    }
-  }
-  return -1;
-}
-
-function appendWithLinks(
-  out: RichTextSegment[],
-  text: string,
-  style: Omit<RichTextSegment, "text">,
-) {
+function appendWithLinks(out: RichTextSegment[], text: string, style: Style) {
   let last = 0;
   const re = new RegExp(URL_REGEXP.source, URL_REGEXP.flags);
   let match: RegExpExecArray | null;
   while ((match = re.exec(text)) !== null) {
-    if (match.index > last) {
-      out.push({ text: text.slice(last, match.index), ...style });
-    }
+    if (match.index > last) out.push({ text: text.slice(last, match.index), ...style });
     const raw = match[0]!;
     const url = trimUrlTail(raw);
     out.push({ text: url, ...style, link: url });
-    if (url.length < raw.length) {
-      out.push({ text: raw.slice(url.length), ...style });
-    }
+    if (url.length < raw.length) out.push({ text: raw.slice(url.length), ...style });
     last = match.index + raw.length;
   }
-  if (last < text.length) {
-    out.push({ text: text.slice(last), ...style });
+  if (last < text.length) out.push({ text: text.slice(last), ...style });
+}
+
+function aplatir(noeuds: NoeudTexte[], style: Style, out: RichTextSegment[]) {
+  for (const n of noeuds) {
+    if ("texte" in n) appendWithLinks(out, n.texte, style);
+    else aplatir(n.enfants, { ...style, [STYLE[n.style]]: true }, out);
   }
 }
 
-function parseInner(
-  text: string,
-  style: Omit<RichTextSegment, "text">,
-): RichTextSegment[] {
-  const spans: RichTextSegment[] = [];
-  let buffer = "";
-
-  function flush() {
-    if (buffer) {
-      appendWithLinks(spans, buffer, style);
-      buffer = "";
-    }
-  }
-
-  let i = 0;
-  while (i < text.length) {
-    const ch = text[i]!;
-    const transform = MARKERS[ch];
-    if (transform) {
-      const close = findClose(text, i + 1, ch);
-      if (close !== -1) {
-        flush();
-        const inner = text.slice(i + 1, close);
-        spans.push(...parseInner(inner, transform(style)));
-        i = close + 1;
-        continue;
-      }
-    }
-    buffer += ch;
-    i++;
-  }
-
-  flush();
-  return spans;
-}
-
-/** Découpe le texte en segments stylés (gras, italique, liens, etc.). */
+/** Découpe le texte en segments stylés (gras, italique, liens…). */
 export function parseRichSpans(text: string): RichTextSegment[] {
   if (!text) return [];
-  return parseInner(text, {});
+  const out: RichTextSegment[] = [];
+  aplatir(analyseMiseEnForme(text), {}, out);
+  return out;
 }
 
-/** Retire les marqueurs pour les aperçus texte brut. */
+/** Le texte sans ses marqueurs, pour les aperçus en texte brut. */
 export function stripMarkers(text: string): string {
-  return text.replace(/[*_~=#]/g, "");
+  return sansMarqueurs(text);
 }
 
-/** Applique un marqueur à la sélection (même logique que chat_input.dart). */
+/**
+ * Applique — ou RETIRE — un marqueur autour de la sélection, comme le mobile
+ * et le web (`appliquerMarqueur`) : un second clic ôte la mise en forme au lieu
+ * d'empiler `**gras**`. Rend aussi la sélection à rétablir.
+ */
 export function applyFormat(
   text: string,
   marker: RichTextMarker,
   selectionStart: number,
   selectionEnd: number,
-): { next: string; cursor: number } {
-  const start = selectionStart < 0 ? text.length : selectionStart;
-  const end = selectionEnd < 0 ? text.length : selectionEnd;
-
-  if (start === end) {
-    const next = text.slice(0, start) + marker + marker + text.slice(end);
-    return { next, cursor: start + marker.length };
-  }
-  const selected = text.slice(start, end);
-  const next = text.slice(0, start) + marker + selected + marker + text.slice(end);
-  return { next, cursor: end + marker.length * 2 };
+): { next: string; cursor: number; selectionStart: number } {
+  const r = appliquerMarqueur(text, selectionStart, selectionEnd, marker);
+  return { next: r.texte, cursor: r.fin, selectionStart: r.debut };
 }

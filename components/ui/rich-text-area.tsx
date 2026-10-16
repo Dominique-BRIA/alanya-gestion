@@ -29,13 +29,15 @@ export function RichTextArea({
   const internalRef = useRef<HTMLTextAreaElement>(null);
   const ref = externalRef ?? internalRef;
 
-  function applySelection(update: { next: string; cursor: number }) {
+  // `selectionStart` : la plage mise en forme reste sélectionnée, comme sur
+  // le mobile et le web — un second clic la remet à l'état brut.
+  function applySelection(update: { next: string; cursor: number; selectionStart?: number }) {
     onChange(update.next);
     requestAnimationFrame(() => {
       const el = ref.current;
       if (!el) return;
       el.focus();
-      el.setSelectionRange(update.cursor, update.cursor);
+      el.setSelectionRange(update.selectionStart ?? update.cursor, update.cursor);
     });
   }
 
