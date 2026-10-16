@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SettingsPageSkeleton } from "@/components/skeletons";
+import { BadgesCard } from "@/components/settings/BadgesCard";
 import { useToast } from "@/components/ui/toast";
 import { useSettings, useUpdateSettings } from "@/hooks/useSettings";
 import { useSecuritySettings, useUpdateSecuritySettings } from "@/hooks/useSecurity";
@@ -212,6 +213,8 @@ export default function SettingsPage() {
             )}
           </CardContent>
         </Card>
+
+        <BadgesCard canEdit={can("verifications.decide")} />
 
         {isSuper && (
           <Card className="border-0 shadow-sm">
