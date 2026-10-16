@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchUserDetail, fetchUserActivity, fetchUserLogins } from '@/lib/mock-data';
 
-export function useUserDetail(id: number) {
+export function useUserDetail(id: string) {
   return useQuery({
     queryKey: ['admin-user-detail', id],
     queryFn: () => fetchUserDetail(id),
@@ -9,7 +9,7 @@ export function useUserDetail(id: number) {
   });
 }
 
-export function useUserActivity(id: number) {
+export function useUserActivity(id: string) {
   return useQuery({
     queryKey: ['admin-user-activity', id],
     queryFn: () => fetchUserActivity(id),
@@ -17,7 +17,7 @@ export function useUserActivity(id: number) {
   });
 }
 
-export function useUserLogins(id: number) {
+export function useUserLogins(id: string) {
   return useQuery({
     queryKey: ['admin-user-logins', id],
     queryFn: () => fetchUserLogins(id),

@@ -42,7 +42,7 @@ export function useUsers(params: UsersParams) {
 export function useBanUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, reason }: { id: number; reason?: string }) => banUser(id, reason),
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) => banUser(id, reason),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 }
@@ -50,7 +50,7 @@ export function useBanUser() {
 export function useUnbanUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => unbanUser(id),
+    mutationFn: (id: string) => unbanUser(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 }
@@ -58,7 +58,7 @@ export function useUnbanUser() {
 export function useSetUserRole() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, typeCompte }: { id: number; typeCompte: number }) => setUserRole(id, typeCompte),
+    mutationFn: ({ id, typeCompte }: { id: string; typeCompte: number }) => setUserRole(id, typeCompte),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 }
@@ -66,7 +66,7 @@ export function useSetUserRole() {
 export function useSetUserSocle() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: SetUserSoclePayload }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: SetUserSoclePayload }) =>
       setUserSocle(id, payload),
     onSuccess: (_data, { id }) => {
       qc.invalidateQueries({ queryKey: ['admin-users'] });
@@ -83,7 +83,7 @@ export function useSetUserSocle() {
 export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => deleteUser(id),
+    mutationFn: (id: string) => deleteUser(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-users'] }),
   });
 }
@@ -99,7 +99,7 @@ export function useCreateUser() {
 export function useUpdateUserPhone() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, alanyaPhone }: { id: number; alanyaPhone: string }) =>
+    mutationFn: ({ id, alanyaPhone }: { id: string; alanyaPhone: string }) =>
       updateUserPhone(id, alanyaPhone),
     onSuccess: (_, { id }) => {
       qc.invalidateQueries({ queryKey: ['admin-users'] });
@@ -109,11 +109,11 @@ export function useUpdateUserPhone() {
   });
 }
 
-export function useUserPhoneHistory(userId: number) {
+export function useUserPhoneHistory(userId: string) {
   return useQuery({
     queryKey: ['admin-user-phone-history', userId],
     queryFn: () => fetchUserPhoneHistory(userId),
-    enabled: Number.isInteger(userId) && userId > 0,
+    enabled: !!userId,
   });
 }
 

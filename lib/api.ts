@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://www.alanya237.com/api';
+// Même origine par défaut : la console est servie sous alanyavox.com/gestion,
+// l'API sous alanyavox.com/api. `NEXT_PUBLIC_API_URL` ne sert qu'en local.
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 function snakeToCamel(obj: unknown): unknown {
   if (Array.isArray(obj)) return obj.map(snakeToCamel);
@@ -43,7 +45,8 @@ async function refreshAccessToken(): Promise<string> {
   const refresh = typeof window !== 'undefined' ? localStorage.getItem('admin_refresh') : null;
   if (!refresh) throw new Error('No refresh token');
   // axios « nu » (sans intercepteurs) → évite la récursion et l'envoi du token expiré
-  const res = await axios.post(`${API_BASE}/auth/refresh`, { refreshToken: refresh });
+  // ⚠️ La route de l'ADMIN : `/auth/refresh` est celle de l'application mobile.
+  const res = await axios.post(`${API_BASE}/admin/auth/refresh`, { refreshToken: refresh });
   const { accessToken, refreshToken } = res.data;
   localStorage.setItem('admin_token', accessToken);
   if (refreshToken) localStorage.setItem('admin_refresh', refreshToken);
@@ -55,8 +58,8 @@ function forceLogout() {
   localStorage.removeItem('admin_token');
   localStorage.removeItem('admin_refresh');
   localStorage.removeItem('admin_user');
-  // basePath /admin : un hard redirect doit inclure le préfixe.
-  window.location.href = '/admin/login';
+  // basePath /gestion : un hard redirect doit inclure le préfixe.
+  window.location.href = '/gestion/login';
 }
 
 api.interceptors.response.use(
@@ -99,7 +102,9 @@ api.interceptors.response.use(
       typeof window !== 'undefined' &&
       hadSession &&
       !isAdminLogin &&
-      code !== 'INVALID_CREDENTIALS'
+      code !== 'INVALID_CREDENTIALS' &&
+      // Mot de passe ACTUEL faux au changement de mot de passe : pas une session perdue.
+      code !== 'PASSWORD_INCORRECT'
     ) {
       forceLogout();
     }

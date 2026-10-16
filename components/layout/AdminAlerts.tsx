@@ -6,7 +6,10 @@ import { AlertTriangle, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/usePermissions";
-import { closeAdminSocket, getAdminSocket } from "@/lib/socket";
+import { fetchTripStats } from "@/lib/api/trips";
+
+/** Intervalle d'interrogation : notre serveur n'a pas de canal temps réel pour la console. */
+const INTERVALLE_MS = 30_000;
 
 interface TripAlert {
   state: "alert" | "sos";
@@ -69,16 +72,37 @@ export function AdminAlerts() {
   const autorise = can("trips.read");
   const previous = useRef(0);
 
+  /*
+   * PAR INTERROGATION, toutes les 30 s : le compteur d'alertes des dernières
+   * 24 h. Le premier relevé sert de référence (pas d'alerte pour le passé) ;
+   * ensuite, chaque hausse ouvre une entrée — sans identité ni position,
+   * comme le reste de la page Trajets.
+   */
   useEffect(() => {
     if (!autorise) return;
-    const socket = getAdminSocket();
-    if (!socket) return;
-
-    const onAlert = (payload: TripAlert) => setAlerts((a) => [payload, ...a].slice(0, 20));
-    socket.on("admin:trip_alert", onAlert);
-    return () => {
-      socket.off("admin:trip_alert", onAlert);
+    let reference: { alerted: number; sos: number } | null = null;
+    const releve = async () => {
+      try {
+        const depuis = new Date(Date.now() - 86_400_000).toISOString();
+        const s = await fetchTripStats(depuis, new Date().toISOString());
+        if (reference) {
+          const nouvellesSos = Math.max(0, s.sos - reference.sos);
+          const nouvelles = Math.max(0, s.alerted - reference.alerted - nouvellesSos);
+          const maintenant = new Date().toISOString();
+          const entrees: TripAlert[] = [
+            ...Array.from({ length: nouvellesSos }, () => ({ state: "sos" as const, kind: "sos" as const, at: maintenant })),
+            ...Array.from({ length: nouvelles }, () => ({ state: "alert" as const, kind: "taxi" as const, at: maintenant })),
+          ];
+          if (entrees.length) setAlerts((a) => [...entrees, ...a].slice(0, 20));
+        }
+        reference = { alerted: s.alerted, sos: s.sos };
+      } catch {
+        // Une interrogation manquée sera reprise au tour suivant.
+      }
     };
+    void releve();
+    const minuteur = setInterval(releve, INTERVALLE_MS);
+    return () => clearInterval(minuteur);
   }, [autorise]);
 
   // Le son suit l'arrivée, pas le rendu : sonner dans le gestionnaire d'événement
@@ -87,10 +111,6 @@ export function AdminAlerts() {
     if (alerts.length > previous.current) beep();
     previous.current = alerts.length;
   }, [alerts.length]);
-
-  // Fermer la session ferme le canal : sans ça, un socket authentifié
-  // survivrait à la déconnexion jusqu'au rechargement de l'onglet.
-  useEffect(() => () => closeAdminSocket(), []);
 
   if (!autorise || alerts.length === 0) return null;
 

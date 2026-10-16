@@ -3,110 +3,69 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCountries } from "@/hooks/useCountries";
-import { useVilles } from "@/hooks/useBroadcasts";
-import { ACCOUNT_TYPE_LABELS, VERIFICATION_LABELS } from "@/lib/account-labels";
+import { useEntreprises } from "@/hooks/useBroadcasts";
+import { TYPE_COMPTE_LABELS, TYPES_COMPTE_CIBLABLES } from "@/lib/type-compte";
 import type { BroadcastCriteria, BroadcastCriteriaField, BroadcastCriteriaOp } from "@/types";
 import { Plus, Trash2 } from "lucide-react";
 
+/**
+ * Le ciblage d'une diffusion, avec les champs que NOTRE base connaît :
+ * pays, entreprise, type de compte, inscription, dernière activité.
+ * (Genre, âge et ville n'existent pas chez nous — voir
+ * `backend-alanya/src/lib/gestion/diffusions.ts`.)
+ */
 export interface DraftCondition {
   id: string;
   field: BroadcastCriteriaField;
   op: BroadcastCriteriaOp;
   value: string;
-  /** Borne haute de l'opérateur `between`. */
-  value2?: string;
-  idPaysForVille?: number;
+  /** Pour les dates : un décalage (« -30 ») en jours, ou une date absolue. */
+  mode?: "relatif" | "date";
 }
 
-/** Plafond serveur pour un `in` — criteriaResolver.js:17 (`MAX_IN_IDS`). */
-export const MAX_IN_IDS = 500;
-
-/** Plafond serveur — criteriaResolver.js:16 (`MAX_CONDITIONS`). */
+/** Plafond serveur (`MAX_CONDITIONS` de diffusions.ts). */
 export const MAX_CONDITIONS = 20;
 
 const FIELDS: { value: BroadcastCriteriaField; label: string }[] = [
   { value: "idPays", label: "Pays" },
-  { value: "idVille", label: "Ville" },
-  { value: "genre", label: "Genre" },
-  { value: "age", label: "Âge" },
-  { value: "account_type", label: "Type de compte" },
-  { value: "verification_status", label: "Vérification" },
+  { value: "idCompany", label: "Entreprise" },
+  { value: "type_compte", label: "Type de compte" },
   { value: "created_at", label: "Inscription" },
   { value: "last_seen", label: "Dernière activité" },
-  { value: "verified_until", label: "Fin de vérification" },
-  { value: "alanyaID", label: "Liste IDs" },
 ];
 
-const DATE_FIELDS: BroadcastCriteriaField[] = ["created_at", "last_seen", "verified_until"];
-const NUMERIC_SELECT_FIELDS: BroadcastCriteriaField[] = ["account_type", "verification_status"];
+const DATE_FIELDS: BroadcastCriteriaField[] = ["created_at", "last_seen"];
 
 function newDraft(): DraftCondition {
   return { id: crypto.randomUUID(), field: "idPays", op: "eq", value: "" };
 }
 
-/** Liste d'IDs saisie librement → tableau d'entiers positifs, sans doublon. */
-export function parseIdList(raw: string): number[] {
-  const seen = new Set<number>();
-  for (const chunk of raw.split(/[\s,;]+/)) {
-    const n = Number(chunk.trim());
-    if (Number.isInteger(n) && n > 0) seen.add(n);
-  }
-  return Array.from(seen);
-}
-
-/** Une condition est-elle exploitable ? Sert au filtrage et à la validation. */
 function isComplete(d: DraftCondition): boolean {
-  if (d.field === "alanyaID") return parseIdList(d.value).length > 0;
-  if (d.field === "age" && d.op === "between") {
-    return d.value.trim() !== "" && (d.value2 ?? "").trim() !== "";
+  if (DATE_FIELDS.includes(d.field) && (d.mode ?? "relatif") === "relatif") {
+    return /^\d+$/.test(d.value.trim());
   }
   return d.value.trim() !== "";
 }
 
 export function draftToCriteria(drafts: DraftCondition[]): BroadcastCriteria {
   const conditions = drafts.filter(isComplete).map((d) => {
-    if (d.field === "age") {
-      // `between` attend un couple [min, max] : un scalaire produit
-      // `val >= undefined` côté serveur, donc une audience vide sans erreur
-      // (criteriaResolver.js:133).
-      if (d.op === "between") {
-        const a = Number(d.value);
-        const b = Number(d.value2);
-        return { field: d.field, op: d.op, value: [Math.min(a, b), Math.max(a, b)] };
-      }
-      return { field: d.field, op: d.op, value: Number(d.value) };
-    }
-    if (
-      d.field === "idPays" ||
-      d.field === "idVille" ||
-      d.field === "account_type" ||
-      d.field === "verification_status"
-    ) {
-      return { field: d.field, op: d.op, value: Number(d.value) };
-    }
-    if (d.field === "alanyaID") {
-      return { field: d.field, op: "in" as const, value: parseIdList(d.value).slice(0, MAX_IN_IDS) };
-    }
     if (DATE_FIELDS.includes(d.field)) {
-      return { field: d.field, op: d.op as "before" | "after", value: { relative: d.value } };
+      const op: BroadcastCriteriaOp = d.op === "before" ? "before" : "after";
+      // « il y a N jours » : un décalage NÉGATIF, que le serveur gèle à l'envoi.
+      const value =
+        (d.mode ?? "relatif") === "relatif"
+          ? { relative: `-${Number(d.value)} days` }
+          : { absolute: new Date(`${d.value}T00:00:00`).toISOString() };
+      return { field: d.field, op, value };
     }
-    return { field: d.field, op: d.op, value: d.value };
+    return { field: d.field, op: "eq" as const, value: Number(d.value) };
   });
   return { v: 1, op: "and", conditions };
 }
 
 /** Messages bloquants — ce que le serveur refuserait. */
 export function criteriaErrors(drafts: DraftCondition[]): string[] {
-  const errors: string[] = [];
-  if (drafts.filter(isComplete).length > MAX_CONDITIONS) {
-    errors.push(`Maximum ${MAX_CONDITIONS} conditions.`);
-  }
-  for (const d of drafts) {
-    if (d.field === "alanyaID" && parseIdList(d.value).length > MAX_IN_IDS) {
-      errors.push(`Liste d'IDs limitée à ${MAX_IN_IDS} entrées.`);
-    }
-  }
-  return errors;
+  return drafts.filter(isComplete).length > MAX_CONDITIONS ? [`Maximum ${MAX_CONDITIONS} conditions.`] : [];
 }
 
 interface CriteriaBuilderProps {
@@ -116,20 +75,17 @@ interface CriteriaBuilderProps {
 
 export function CriteriaBuilder({ drafts, onChange }: CriteriaBuilderProps) {
   const { data: countries } = useCountries();
+  const { data: entreprises } = useEntreprises();
 
   function update(id: string, patch: Partial<DraftCondition>) {
     onChange(drafts.map((d) => (d.id === id ? { ...d, ...patch } : d)));
-  }
-
-  function remove(id: string) {
-    onChange(drafts.filter((d) => d.id !== id));
   }
 
   return (
     <div className="space-y-3">
       {drafts.length === 0 && (
         <p className="rounded-lg border border-dashed border-zinc-300 px-3 py-4 text-center text-sm text-zinc-500 dark:border-zinc-700">
-          Aucun critère — tous les utilisateurs éligibles.
+          Aucun critère — tous les comptes actifs (hors compte officiel).
         </p>
       )}
       {drafts.map((d) => (
@@ -137,8 +93,9 @@ export function CriteriaBuilder({ drafts, onChange }: CriteriaBuilderProps) {
           key={d.id}
           draft={d}
           countries={countries}
+          entreprises={entreprises}
           onUpdate={(p) => update(d.id, p)}
-          onRemove={() => remove(d.id)}
+          onRemove={() => onChange(drafts.filter((x) => x.id !== d.id))}
         />
       ))}
       <div className="flex items-center gap-3">
@@ -152,9 +109,7 @@ export function CriteriaBuilder({ drafts, onChange }: CriteriaBuilderProps) {
           <Plus className="mr-1 h-4 w-4" /> Ajouter une condition
         </Button>
         {drafts.length > 1 && (
-          <span className="text-xs text-zinc-400">
-            Toutes les conditions doivent être vraies (ET)
-          </span>
+          <span className="text-xs text-zinc-400">Toutes les conditions doivent être vraies (ET)</span>
         )}
       </div>
     </div>
@@ -167,19 +122,18 @@ const selectClass =
 function ConditionRow({
   draft,
   countries,
+  entreprises,
   onUpdate,
   onRemove,
 }: {
   draft: DraftCondition;
   countries?: { idPays: number; libelle: string }[];
+  entreprises?: { idCompany: number; libelle: string; comptes: number }[];
   onUpdate: (p: Partial<DraftCondition>) => void;
   onRemove: () => void;
 }) {
-  const idPays =
-    draft.idPaysForVille ?? (draft.field === "idPays" ? Number(draft.value) || undefined : undefined);
-  const { data: villes } = useVilles(idPays ?? null, draft.field === "idVille" ? draft.value : "");
-  const ids = draft.field === "alanyaID" ? parseIdList(draft.value) : [];
-
+  const estDate = DATE_FIELDS.includes(draft.field);
+  const mode = draft.mode ?? "relatif";
   return (
     <div className="flex flex-wrap items-start gap-2 rounded-lg border border-zinc-100 p-2 dark:border-zinc-800">
       <select
@@ -188,13 +142,7 @@ function ConditionRow({
         value={draft.field}
         onChange={(e) => {
           const field = e.target.value as BroadcastCriteriaField;
-          onUpdate({
-            field,
-            value: "",
-            value2: undefined,
-            idPaysForVille: undefined,
-            op: DATE_FIELDS.includes(field) ? "after" : field === "age" ? "lte" : "eq",
-          });
+          onUpdate({ field, value: "", mode: "relatif", op: DATE_FIELDS.includes(field) ? "before" : "eq" });
         }}
       >
         {FIELDS.map((f) => (
@@ -204,28 +152,8 @@ function ConditionRow({
         ))}
       </select>
 
-      {draft.field === "genre" && (
-        <select
-          className={selectClass}
-          aria-label="Genre"
-          value={draft.value}
-          onChange={(e) => onUpdate({ value: e.target.value })}
-        >
-          <option value="">—</option>
-          <option value="homme">Homme</option>
-          <option value="femme">Femme</option>
-          <option value="autre">Autre</option>
-          <option value="non_precise">Non précisé</option>
-        </select>
-      )}
-
       {draft.field === "idPays" && (
-        <select
-          className={`${selectClass} min-w-[140px]`}
-          aria-label="Pays"
-          value={draft.value}
-          onChange={(e) => onUpdate({ value: e.target.value })}
-        >
+        <select className={`${selectClass} min-w-[160px]`} aria-label="Pays" value={draft.value} onChange={(e) => onUpdate({ value: e.target.value })}>
           <option value="">—</option>
           {countries?.map((c) => (
             <option key={c.idPays} value={c.idPays}>
@@ -235,91 +163,29 @@ function ConditionRow({
         </select>
       )}
 
-      {draft.field === "idVille" && (
-        <>
-          <select
-            className={selectClass}
-            aria-label="Pays de la ville"
-            value={draft.idPaysForVille ?? ""}
-            onChange={(e) => onUpdate({ idPaysForVille: Number(e.target.value), value: "" })}
-          >
-            <option value="">Pays…</option>
-            {countries?.map((c) => (
-              <option key={c.idPays} value={c.idPays}>
-                {c.libelle}
-              </option>
-            ))}
-          </select>
-          <select
-            className={`${selectClass} min-w-[140px]`}
-            aria-label="Ville"
-            value={draft.value}
-            onChange={(e) => onUpdate({ value: e.target.value })}
-          >
-            <option value="">Ville…</option>
-            {villes?.map((v) => (
-              <option key={v.idVille} value={v.idVille}>
-                {v.libelle}
-              </option>
-            ))}
-          </select>
-        </>
-      )}
-
-      {draft.field === "age" && (
-        <>
-          <select
-            className={selectClass}
-            aria-label="Opérateur"
-            value={draft.op}
-            onChange={(e) => onUpdate({ op: e.target.value as BroadcastCriteriaOp })}
-          >
-            <option value="lte">≤</option>
-            <option value="gte">≥</option>
-            <option value="eq">=</option>
-            <option value="between">entre</option>
-          </select>
-          <Input
-            className="h-9 w-20"
-            type="number"
-            aria-label={draft.op === "between" ? "Âge minimum" : "Âge"}
-            value={draft.value}
-            onChange={(e) => onUpdate({ value: e.target.value })}
-          />
-          {draft.op === "between" && (
-            <>
-              <span className="self-center text-sm text-zinc-400">et</span>
-              <Input
-                className="h-9 w-20"
-                type="number"
-                aria-label="Âge maximum"
-                value={draft.value2 ?? ""}
-                onChange={(e) => onUpdate({ value2: e.target.value })}
-              />
-            </>
-          )}
-        </>
-      )}
-
-      {NUMERIC_SELECT_FIELDS.includes(draft.field) && (
-        <select
-          className={`${selectClass} min-w-[140px]`}
-          aria-label={draft.field === "account_type" ? "Type de compte" : "Vérification"}
-          value={draft.value}
-          onChange={(e) => onUpdate({ value: e.target.value })}
-        >
+      {draft.field === "idCompany" && (
+        <select className={`${selectClass} min-w-[200px]`} aria-label="Entreprise" value={draft.value} onChange={(e) => onUpdate({ value: e.target.value })}>
           <option value="">—</option>
-          {Object.entries(
-            draft.field === "account_type" ? ACCOUNT_TYPE_LABELS : VERIFICATION_LABELS,
-          ).map(([v, label]) => (
-            <option key={v} value={v}>
-              {label}
+          {entreprises?.map((e) => (
+            <option key={e.idCompany} value={e.idCompany}>
+              {e.libelle} ({e.comptes})
             </option>
           ))}
         </select>
       )}
 
-      {DATE_FIELDS.includes(draft.field) && (
+      {draft.field === "type_compte" && (
+        <select className={`${selectClass} min-w-[180px]`} aria-label="Type de compte" value={draft.value} onChange={(e) => onUpdate({ value: e.target.value })}>
+          <option value="">—</option>
+          {TYPES_COMPTE_CIBLABLES.map((t) => (
+            <option key={t} value={t}>
+              {TYPE_COMPTE_LABELS[t]}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {estDate && (
         <>
           <select
             className={selectClass}
@@ -327,46 +193,43 @@ function ConditionRow({
             value={draft.op}
             onChange={(e) => onUpdate({ op: e.target.value as BroadcastCriteriaOp })}
           >
-            <option value="after">après</option>
             <option value="before">avant</option>
+            <option value="after">après</option>
           </select>
-          <Input
-            className="h-9 w-32"
-            placeholder="-30 days"
-            aria-label="Décalage relatif"
-            value={draft.value}
-            onChange={(e) => onUpdate({ value: e.target.value })}
-          />
-          <span className="self-center text-xs text-zinc-400">ex. -30 days, -24 hours</span>
+          <select
+            className={selectClass}
+            aria-label="Forme de la date"
+            value={mode}
+            onChange={(e) => onUpdate({ mode: e.target.value as "relatif" | "date", value: "" })}
+          >
+            <option value="relatif">il y a… jours</option>
+            <option value="date">une date</option>
+          </select>
+          {mode === "relatif" ? (
+            <>
+              <Input
+                className="h-9 w-24"
+                type="number"
+                min={0}
+                aria-label="Nombre de jours"
+                value={draft.value}
+                onChange={(e) => onUpdate({ value: e.target.value })}
+              />
+              <span className="self-center text-xs text-zinc-400">jours (ex. « avant il y a 30 jours » = inactifs depuis 30 jours)</span>
+            </>
+          ) : (
+            <Input
+              className="h-9 w-40"
+              type="date"
+              aria-label="Date"
+              value={draft.value}
+              onChange={(e) => onUpdate({ value: e.target.value })}
+            />
+          )}
         </>
       )}
 
-      {draft.field === "alanyaID" && (
-        <div className="min-w-[200px] flex-1 space-y-1">
-          <Input
-            className="h-9"
-            placeholder="IDs séparés par virgule"
-            aria-label="Liste d'identifiants"
-            value={draft.value}
-            onChange={(e) => onUpdate({ value: e.target.value })}
-          />
-          <p
-            className={`text-xs ${ids.length > MAX_IN_IDS ? "text-red-500" : "text-zinc-400"}`}
-          >
-            {ids.length} / {MAX_IN_IDS} identifiants
-            {ids.length > MAX_IN_IDS ? " — au-delà, le serveur refuse la diffusion" : ""}
-          </p>
-        </div>
-      )}
-
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="h-9 w-9 shrink-0"
-        aria-label="Retirer la condition"
-        onClick={onRemove}
-      >
+      <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label="Retirer la condition" onClick={onRemove}>
         <Trash2 className="h-4 w-4 text-zinc-400" />
       </Button>
     </div>

@@ -7,8 +7,9 @@ import { USE_MOCK } from '@/lib/mock';
 
 export async function fetchCountries(): Promise<Pays[]> {
   if (USE_MOCK) return mockCountries;
+  // Notre `GET /api/pays` (publique) rend `{ pays: [...] }`.
   const res = await api.get('/pays');
-  return (res.data || []) as Pays[];
+  return (Array.isArray(res.data) ? res.data : (res.data?.pays ?? [])) as Pays[];
 }
 
 export async function fetchUsers(params: UsersApiParams): Promise<UsersResponse> {
@@ -20,7 +21,7 @@ export async function fetchUsers(params: UsersApiParams): Promise<UsersResponse>
   return res.data;
 }
 
-export async function fetchUserDetail(id: number): Promise<UserDetail> {
+export async function fetchUserDetail(id: string): Promise<UserDetail> {
   if (USE_MOCK) {
     return { ...mockUserDetail, alanyaID: id };
   }
@@ -28,34 +29,34 @@ export async function fetchUserDetail(id: number): Promise<UserDetail> {
   return res.data;
 }
 
-export async function fetchUserActivity(id: number): Promise<UserActivity> {
+export async function fetchUserActivity(id: string): Promise<UserActivity> {
   if (USE_MOCK) return mockUserActivity;
   const res = await api.get(`/admin/users/${id}/activity`);
   return res.data;
 }
 
-export async function fetchUserLogins(id: number): Promise<LoginEntry[]> {
+export async function fetchUserLogins(id: string): Promise<LoginEntry[]> {
   if (USE_MOCK) return mockLoginHistory;
   const res = await api.get(`/admin/users/${id}/logins`);
   return res.data;
 }
 
-export async function banUser(id: number, reason?: string): Promise<void> {
+export async function banUser(id: string, reason?: string): Promise<void> {
   if (USE_MOCK) return;
   await api.post(`/admin/users/${id}/ban`, { reason });
 }
 
-export async function unbanUser(id: number): Promise<void> {
+export async function unbanUser(id: string): Promise<void> {
   if (USE_MOCK) return;
   await api.delete(`/admin/users/${id}/ban`);
 }
 
-export async function setUserRole(id: number, typeCompte: number): Promise<void> {
+export async function setUserRole(id: string, typeCompte: number): Promise<void> {
   if (USE_MOCK) return;
   await api.put(`/admin/users/${id}/role`, { type_compte: typeCompte });
 }
 
-export async function deleteUser(id: number): Promise<void> {
+export async function deleteUser(id: string): Promise<void> {
   if (USE_MOCK) return;
   await api.delete(`/admin/users/${id}`);
 }
@@ -91,19 +92,19 @@ export async function createUser(payload: import('@/types').CreateUserPayload): 
  * d'administration.
  */
 export async function setUserSocle(
-  id: number,
+  id: string,
   payload: import('@/types').SetUserSoclePayload,
 ): Promise<void> {
   if (USE_MOCK) return;
   await api.put(`/admin/users/${id}/socle`, payload);
 }
 
-export async function updateUserPhone(id: number, alanyaPhone: string): Promise<void> {
+export async function updateUserPhone(id: string, alanyaPhone: string): Promise<void> {
   if (USE_MOCK) return;
   await api.put(`/admin/users/${id}/phone`, { alanyaPhone });
 }
 
-export async function fetchUserPhoneHistory(id: number): Promise<import('@/types').UserPhoneHistoryResponse> {
+export async function fetchUserPhoneHistory(id: string): Promise<import('@/types').UserPhoneHistoryResponse> {
   if (USE_MOCK) return { quarantineDays: 90, pendingCredit: null, history: [] };
   const res = await api.get(`/admin/users/${id}/phone-history`);
   return res.data;
@@ -114,7 +115,7 @@ export async function fetchReservedAlanyaPhones(
 ): Promise<import('@/types').PaginatedReservedAlanyaPhones> {
   const mockItems: import('@/types').ReservedAlanyaPhone[] = [
     { id: 1, phoneCanonical: '000', label: 'Réservé 3 ch.', createdBy: null, createdAt: new Date().toISOString(), isUsed: false },
-    { id: 2, phoneCanonical: '0000', label: 'Réservé 4 ch.', createdBy: null, createdAt: new Date().toISOString(), isUsed: true, usedByAlanyaId: 4, usedByNom: 'Sophie L.', usedByPseudo: 'sophiel' },
+    { id: 2, phoneCanonical: '0000', label: 'Réservé 4 ch.', createdBy: null, createdAt: new Date().toISOString(), isUsed: true, usedByAlanyaId: "4", usedByNom: 'Sophie L.', usedByPseudo: 'sophiel' },
     { id: 3, phoneCanonical: '00000000', label: 'Réservé 8 ch.', createdBy: null, createdAt: new Date().toISOString(), isUsed: false },
   ];
 
@@ -234,11 +235,11 @@ function mapReservedRow(r: Record<string, unknown>): import('@/types').ReservedA
       id: r.id as number,
       phoneCanonical: (r.phone_canonical as string) || (r.phoneCanonical as string) || '',
       label: r.label as string,
-      createdBy: (r.created_by as number) ?? null,
+      createdBy: (r.created_by as string) ?? null,
       createdAt: (r.created_at as string) || '',
       createdByNom: (r.created_by_nom as string) ?? null,
       isUsed: Boolean(r.isUsed ?? r.is_used),
-      usedByAlanyaId: (r.usedByAlanyaId as number) ?? (r.used_by_alanya_id as number) ?? null,
+      usedByAlanyaId: (r.usedByAlanyaId as string) ?? (r.used_by_alanya_id as string) ?? null,
       usedByNom: (r.usedByNom as string) ?? (r.used_by_nom as string) ?? null,
       usedByPseudo: (r.usedByPseudo as string) ?? (r.used_by_pseudo as string) ?? null,
   };

@@ -8,7 +8,6 @@ import { useAudit } from "@/hooks/useAudit";
 import { useBanUser, useUnbanUser, useSetUserRole, useSetUserSocle, useDeleteUser, useUpdateUserPhone, useCheckAssignablePhone } from "@/hooks/useUsers";
 import { formatDisplay, formatLiveInput, isCompletePhone, normalize, validate } from "@/lib/alanya-phone";
 import { AccountBadgeLabel, isOfficialAlanyaAccount } from "@/components/account-badge";
-import { SubscriptionCard } from "@/components/billing/SubscriptionCard";
 import { PhoneHistoryCard } from "@/components/users/PhoneHistoryCard";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -34,12 +33,12 @@ import {
 export default function UserDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const id = parseInt(params.id as string);
+  const id = params.id as string;
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
-  const [confirmBan, setConfirmBan] = useState<{ id: number; reason: string } | null>(null);
-  const [confirmRole, setConfirmRole] = useState<{ id: number; role: number } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [confirmBan, setConfirmBan] = useState<{ id: string; reason: string } | null>(null);
+  const [confirmRole, setConfirmRole] = useState<{ id: string; role: number } | null>(null);
   const [showPhoneChange, setShowPhoneChange] = useState(false);
   const [newPhone, setNewPhone] = useState("");
 
@@ -364,14 +363,6 @@ export default function UserDetailPage() {
               </Card>
             );
           })()}
-
-          {can("billing.read") && (
-            <SubscriptionCard
-              userId={id}
-              userName={user.nom || user.pseudo}
-              verified={(user.verificationStatus ?? 0) === 2}
-            />
-          )}
 
           <PhoneHistoryCard userId={id} />
         </div>

@@ -70,7 +70,7 @@ import type { PreviewContent } from "@/components/preview/PreviewStage";
 import type { PreviewLang } from "@/components/preview/types";
 import { AccountBadgeLabel } from "@/components/account-badge";
 import { useCountries } from "@/hooks/useCountries";
-import { useBroadcasts, useCreateBroadcast, useOfficialAccount } from "@/hooks/useBroadcasts";
+import { useBroadcasts, useCreateBroadcast, useEntreprises, useOfficialAccount } from "@/hooks/useBroadcasts";
 import { statutMediaType } from "@/lib/broadcast-payload";
 import { formatCriteriaSummary } from "@/lib/criteria-labels";
 import { broadcastToPreview, PUSH_BODY_MAX } from "@/lib/preview/broadcast-to-preview";
@@ -83,12 +83,14 @@ import type { BroadcastFormData } from "@/types";
  * 1 statut 24 h) et `type` (le type média du message). « Statut 24 h » est le
  * seul choix qui change `kind` ; son `type` est déduit de l'URL du média.
  */
-const NATURES = [
+// Alanya Work : une diffusion est un MESSAGE TEXTE, en français (décisions du
+// 15/10/2026) — ni média, ni statut ; le serveur refuse les autres natures.
+const NATURES: readonly { value: number; label: string; hint: string; icon: typeof FileText; isStatus: boolean }[] = [
   { value: 0, label: "Message", hint: "Texte seul", icon: FileText, isStatus: false },
-  { value: 1, label: "Image", hint: "Photo + légende", icon: ImageIcon, isStatus: false },
-  { value: 2, label: "Vidéo", hint: "Vidéo + légende", icon: Video, isStatus: false },
-  { value: 3, label: "Statut 24 h", hint: "Expire après 24 h", icon: Radio, isStatus: true },
-] as const;
+];
+// Gardés importés pour les natures qui reviendraient : rien ne les affiche aujourd'hui.
+void ImageIcon;
+void Video;
 
 function newClientId() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
@@ -102,6 +104,7 @@ export default function NewBroadcastPage() {
   const { refetch } = useBroadcasts();
   const { data: official, isLoading: officialLoading } = useOfficialAccount();
   const { data: countries } = useCountries();
+  const { data: entreprises } = useEntreprises();
 
   const [clientId, setClientId] = useState(newClientId);
   // Un enregistrement par locale plutôt qu'un useState par langue : ajouter
@@ -126,6 +129,7 @@ export default function NewBroadcastPage() {
 
   const criteriaSummary = formatCriteriaSummary(criteria, {
     countryName: (id) => countries?.find((c) => c.idPays === id)?.libelle,
+    companyName: (id) => entreprises?.find((e) => e.idCompany === id)?.libelle,
   });
 
   // L'aperçu passe par la dérivation réelle : kind → conversation ou statut.
@@ -191,7 +195,7 @@ export default function NewBroadcastPage() {
     if (!official) return;
 
     const data: BroadcastFormData = {
-      senderId: Number(official.alanyaID),
+      senderId: official.alanyaID,
       content: translations.fr?.trim() ?? "",
       contentEn: translations.en?.trim() || undefined,
       translations,
@@ -339,11 +343,11 @@ export default function NewBroadcastPage() {
               ) : (
                 <div className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 dark:border-amber-900 dark:bg-amber-950">
                   <p className="text-xs text-amber-800 dark:text-amber-300">
-                    Aucun compte officiel n&rsquo;existe encore. Créez-le depuis{" "}
+                    Le compte officiel « Alanya Work » n&rsquo;existe pas encore. Créez-le depuis{" "}
                     <Link href="/users/new" className="font-medium underline">
                       Utilisateurs → Créer un utilisateur
                     </Link>{" "}
-                    avant de diffuser.
+                    (bouton « Compte officiel ») avant de diffuser.
                   </p>
                 </div>
               )}
@@ -353,7 +357,7 @@ export default function NewBroadcastPage() {
           <Section
             step={2}
             title="Contenu"
-            description={`${REQUIRED_LOCALE_NAMES} obligatoires ; les autres langues sont facultatives et retombent sur la chaîne de repli`}
+            description={`En ${REQUIRED_LOCALE_NAMES.toLowerCase()} : c'est la langue des messages officiels d'Alanya Work`}
           >
             <div className="space-y-3">
               <LangTabs value={lang} onChange={setLang} translations={translations} />

@@ -26,7 +26,7 @@ function origin(entry: PhoneHistoryEntry): string {
   return entry.changedByName ? `Par ${entry.changedByName}` : "Par l'administration";
 }
 
-export function PhoneHistoryCard({ userId }: { userId: number }) {
+export function PhoneHistoryCard({ userId }: { userId: string }) {
   const { data, isLoading, isError, refetch } = useUserPhoneHistory(userId);
 
   return (

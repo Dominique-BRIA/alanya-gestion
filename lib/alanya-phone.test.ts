@@ -3,7 +3,6 @@ import {
   normalize,
   getTier,
   validate,
-  isXxyyzztt,
   isPatternReserved,
   validateReservedCandidate,
   formatDisplay,
@@ -23,69 +22,44 @@ describe('normalize', () => {
   });
 });
 
-describe('getTier / validate', () => {
-  it('3, 4 et 8 chiffres sont les seuls tirages acceptés', () => {
-    expect(getTier('123')).toBe(3);
-    expect(getTier('1234')).toBe(4);
+describe('getTier / validate — Alanya ID de 6 à 8 chiffres', () => {
+  it('6, 7 et 8 chiffres sont acceptés', () => {
+    expect(getTier('123456')).toBe(6);
+    expect(getTier('1234567')).toBe(7);
     expect(getTier('12345678')).toBe(8);
-    expect(getTier('12345')).toBeNull();
   });
-  it('validate rejette les longueurs hors-tiers', () => {
-    expect(validate('12345')).toMatch(/3, 4 ou 8/);
+  it('les autres longueurs sont refusées', () => {
+    expect(getTier('123')).toBeNull();
+    expect(getTier('123456789')).toBeNull();
+    expect(validate('12345')).toMatch(/6 à 8/);
     expect(validate('12a3')).toMatch(/Chiffres uniquement/);
     expect(validate('')).toMatch(/requis/);
-    expect(validate('1234')).toBeNull();
+    expect(validate('12345678')).toBeNull();
   });
 });
 
-describe('patterns réservés', () => {
-  it('isXxyyzztt ne matche que le format 8 chiffres en paires', () => {
-    expect(isXxyyzztt('11223344')).toBe(true);
-    expect(isXxyyzztt('12345678')).toBe(false);
-    expect(isXxyyzztt('1122334')).toBe(false);
+describe('réservation', () => {
+  it("pas de motif réservé : c'est la table qui décide", () => {
+    expect(isPatternReserved('11223344')).toBe(false);
+    expect(isPatternReserved('123')).toBe(false);
   });
-  it('isPatternReserved couvre 3, 4 et XXYYZZTT', () => {
-    expect(isPatternReserved('000')).toBe(true);
-    expect(isPatternReserved('1234')).toBe(true);
-    expect(isPatternReserved('11223344')).toBe(true);
-    expect(isPatternReserved('12345678')).toBe(false);
-    expect(isPatternReserved('')).toBe(false);
-  });
-  it('validateReservedCandidate refuse un numéro non-pattern', () => {
-    expect(validateReservedCandidate('12345678')).toMatch(/Réservation limitée/);
-    expect(validateReservedCandidate('11223344')).toBeNull();
+  it('tout Alanya ID valide peut être réservé', () => {
+    expect(validateReservedCandidate('87654321')).toBeNull();
+    expect(validateReservedCandidate('123')).toMatch(/6 à 8/);
   });
 });
 
-describe('formatDisplay', () => {
-  it('groupe les 8 chiffres par paires', () => {
-    expect(formatDisplay('00482917')).toBe('00 48 29 17');
+describe('affichage', () => {
+  it('groupe par deux, sans compléter un numéro de 6 chiffres', () => {
+    expect(formatDisplay('12345678')).toBe('12 34 56 78');
+    expect(formatDisplay('123456')).toBe('12 34 56');
   });
-  it('aligne les anciens 5–7 chiffres sur le schéma 8', () => {
-    expect(formatDisplay('123456')).toBe('00 12 34 56');
+  it('saisie en direct : 8 chiffres au plus', () => {
+    expect(formatLiveInput('1234567890')).toBe('12 34 56 78');
   });
-  it('laisse 3 chiffres tel quel', () => {
-    expect(formatDisplay('123')).toBe('123');
-  });
-});
-
-describe('formatLiveInput', () => {
-  it('saisie bornée à 8 chiffres groupés par 2', () => {
-    expect(formatLiveInput('12')).toBe('12');
-    expect(formatLiveInput('1234')).toBe('12 34');
-    expect(formatLiveInput('12345678')).toBe('12 34 56 78');
-    expect(formatLiveInput('123456789')).toBe('12 34 56 78');
-  });
-});
-
-describe('isCompletePhone / isAssignableQuery', () => {
-  it('le tri complet valide uniquement les tirages acceptés', () => {
-    expect(isCompletePhone('1234')).toBe(true);
-    expect(isCompletePhone('12345')).toBe(false);
-  });
-  it('isAssignableQuery exige une saisie complète', () => {
-    expect(isAssignableQuery('')).toBe(false);
-    expect(isAssignableQuery('12')).toBe(false);
-    expect(isAssignableQuery('1234')).toBe(true);
+  it('complet = valide', () => {
+    expect(isCompletePhone('12345678')).toBe(true);
+    expect(isCompletePhone('1234')).toBe(false);
+    expect(isAssignableQuery('12 34 56 78')).toBe(true);
   });
 });

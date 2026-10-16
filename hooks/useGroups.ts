@@ -8,7 +8,7 @@ export function useGroups() {
   });
 }
 
-export function useGroupDetail(id: number) {
+export function useGroupDetail(id: string) {
   return useQuery({
     queryKey: ['admin-group-detail', id],
     queryFn: () => fetchGroupDetail(id),
@@ -19,7 +19,7 @@ export function useGroupDetail(id: number) {
 export function useDeleteGroup() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => deleteGroup(id),
+    mutationFn: (id: string) => deleteGroup(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-groups'] }),
   });
 }

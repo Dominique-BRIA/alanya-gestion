@@ -41,7 +41,6 @@ export default function SettingsPage() {
     }
   }, [settings]);
 
-  const maintenance = settings?.maintenance ?? false;
   const deviceBinding = security?.deviceBindingEnabled ?? false;
   const dirty = !!settings && (appName !== settings.appName || apiUrl !== settings.apiUrl);
 
@@ -51,18 +50,6 @@ export default function SettingsPage() {
       {
         onSuccess: () => addToast({ title: "Enregistré", variant: "success" }),
         onError: () => addToast({ title: "Échec", description: "Enregistrement impossible (réservé au super-admin ?)", variant: "error" }),
-      }
-    );
-  }
-
-  function toggleMaintenance() {
-    if (!settings) return;
-    const next = !settings.maintenance;
-    updateMutation.mutate(
-      { maintenance: next },
-      {
-        onSuccess: () => addToast({ title: next ? "Mode maintenance activé" : "Mode maintenance désactivé", variant: "success" }),
-        onError: () => addToast({ title: "Échec", description: "Action réservée au super-admin", variant: "error" }),
       }
     );
   }
@@ -169,20 +156,15 @@ export default function SettingsPage() {
               <Shield className="h-5 w-5 text-indigo-600" />
               <CardTitle className="text-base">Maintenance</CardTitle>
             </div>
-            <CardDescription>Mode maintenance</CardDescription>
+            <CardDescription>Pas de mode maintenance</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-zinc-500">Activer le mode maintenance pour bloquer l&apos;accès des utilisateurs.</p>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={toggleMaintenance}
-                disabled={!isSuper || updateMutation.isPending}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${maintenance ? "bg-indigo-600" : "bg-zinc-300 dark:bg-zinc-700"}`}
-              >
-                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${maintenance ? "translate-x-6" : "translate-x-1"}`} />
-              </button>
-              <span className="text-sm">{maintenance ? "Activé" : "Désactivé"}</span>
-            </div>
+            {/* L'application Alanya Work ne connaît pas de mode maintenance : un
+                interrupteur ici ne bloquerait personne. Une intervention se
+                prépare côté serveur (deployer.sh). */}
+            <p className="text-sm text-zinc-500">
+              L&apos;application Alanya Work n&apos;a pas de mode maintenance pilotable depuis cette console.
+            </p>
           </CardContent>
         </Card>
 

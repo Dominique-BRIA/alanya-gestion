@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { adminLogin } from "@/lib/auth";
-import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import { User, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -45,8 +45,12 @@ export default function LoginPage() {
           : undefined;
       setError(
         status === 401
-          ? "Email ou mot de passe incorrect"
-          : "Erreur de connexion"
+          ? "Identifiant ou mot de passe incorrect"
+          : status === 403
+            ? "Ce compte a été désactivé"
+            : status === 429
+              ? "Trop de tentatives : réessayez dans 15 minutes"
+              : "Erreur de connexion"
       );
     } finally {
       setLoading(false);
@@ -59,7 +63,7 @@ export default function LoginPage() {
         <CardHeader className="text-center space-y-3 pb-6">
           <div className="mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-lg overflow-hidden">
             <Image
-              src="/admin/logo.png"
+              src="/gestion/logo.png"
               alt="Alanya"
               width={56}
               height={56}
@@ -67,21 +71,22 @@ export default function LoginPage() {
               priority
             />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Alanya Admin</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">Alanya Work · Gestion</CardTitle>
           <CardDescription className="text-sm text-muted-foreground">
-            Connectez-vous pour accéder au tableau de bord
+            Connectez-vous avec votre compte superroot d&apos;alanyaCenter
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2" style={{ animation: "fadeSlideIn 0.4s ease-out 0.1s both" }}>
-              <label className="text-sm font-medium" htmlFor="email">Email</label>
+              <label className="text-sm font-medium" htmlFor="email">Identifiant</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="admin@talky.app"
+                  type="text"
+                  autoComplete="username"
+                  placeholder="superroot"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

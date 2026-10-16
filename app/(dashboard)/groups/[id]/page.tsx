@@ -17,7 +17,7 @@ const roleLabels: Record<number, string> = { 0: "Utilisateur", 1: "Admin", 2: "S
 export default function GroupDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const id = parseInt(params.id as string);
+  const id = params.id as string;
   const { addToast } = useToast();
   const deleteGroup = useDeleteGroup();
   const [confirmDelete, setConfirmDelete] = useState(false);

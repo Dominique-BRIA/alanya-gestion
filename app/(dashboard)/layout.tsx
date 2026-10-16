@@ -21,7 +21,7 @@ import {
   HeartPulse,
   ScrollText,
   Flag,
-  CreditCard,
+  BadgeCheck,
   Sticker,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
@@ -43,10 +43,9 @@ const navItemsAll = [
   { href: "/analytics", label: "Analytics", icon: BarChart3, permission: "stats.read" },
   { href: "/trips", label: "Trajets", icon: Route, permission: "trips.read" },
   { href: "/users", label: "Utilisateurs", icon: Users, permission: "users.read" },
-  // Lecture au niveau admin ; les réglages et les plans exigent billing.settings
-  // et billing.plans, vérifiés par la page et par le serveur.
-  { href: "/billing", label: "Abonnement", icon: CreditCard, permission: "billing.read" },
-  // Vérifications : pages conservées hors menu (comptes business plus tard).
+  // Pas de facturation : la facturation grand public est exclue d'Alanya Work
+  // (décision du 15/10/2026). Le badge « vérifié », lui, est au menu.
+  { href: "/verifications", label: "Vérifications", icon: BadgeCheck, permission: "verifications.read" },
   { href: "/groups", label: "Groupes", icon: UsersRound, permission: "groups.read" },
   { href: "/meetings", label: "Réunions", icon: Video, permission: "meetings.read" },
   { href: "/medias", label: "Médias", icon: ImageIcon, permission: "media.read" },
@@ -115,14 +114,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <div className="flex items-center gap-3 px-4 h-16 border-b dark:border-zinc-800">
           <img
-            src="/admin/logo.png"
+            src="/gestion/logo.png"
             alt="Alanya"
             width={36}
             height={36}
             className="shrink-0 rounded-lg shadow-sm object-contain"
           />
           {!collapsed && (
-            <span className="text-lg font-bold tracking-tight">Alanya Admin</span>
+            <span className="text-lg font-bold tracking-tight">Alanya Work</span>
           )}
         </div>
 

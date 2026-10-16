@@ -9,7 +9,7 @@ export async function fetchMediaItems(): Promise<MediaItem[]> {
   return res.data;
 }
 
-export async function deleteMedia(id: number): Promise<void> {
+export async function deleteMedia(id: string): Promise<void> {
   if (USE_MOCK) return;
   await api.delete(`/admin/media/${id}`);
 }

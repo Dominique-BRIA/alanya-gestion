@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  CONTENT_LOCALES,
+  VISIBLE_CONTENT_LOCALES,
   CONTENT_LOCALE_LABELS,
   isRequiredLocale,
   type ContentLocale,
@@ -33,7 +33,7 @@ export function LangTabs({
     <div
       className={`flex gap-1 p-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 w-fit ${className}`}
     >
-      {CONTENT_LOCALES.map((l) => {
+      {VISIBLE_CONTENT_LOCALES.map((l) => {
         const missing =
           translations != null &&
           isRequiredLocale(l) &&

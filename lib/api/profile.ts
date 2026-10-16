@@ -3,7 +3,7 @@ import { api } from '@/lib/api';
 import { USE_MOCK } from '@/lib/mock';
 
 const mockAdminProfile: AdminProfile = {
-  alanyaID: 42,
+  alanyaID: "42",
   nom: "Chris Admin",
   pseudo: "chrisadmin",
   email: "admin@talky.app",

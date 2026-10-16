@@ -13,18 +13,16 @@ import {
   useSaveWelcomeDraft,
   usePublishWelcome,
   useBackfillWelcome,
-  useWelcomeStatus,
 } from "@/hooks/useWelcome";
 import { WelcomeEditor } from "@/components/welcome/WelcomeEditor";
-import { WelcomeStatusEditor } from "@/components/welcome/WelcomeStatusEditor";
 import { WelcomePageSkeleton } from "@/components/skeletons";
-import { TabPanel, Tabs, TabStatePill } from "@/components/ui/tabs";
+import { TabPanel, Tabs } from "@/components/ui/tabs";
 import {
   REQUIRED_LOCALE_NAMES,
   untranslatedRequiredLocales,
 } from "@/lib/content-locales";
 import type { WelcomeBlock } from "@/types";
-import { HandHeart, Loader2, Lock, MessageSquare, Radio, Rocket, Save, Undo2, Users } from "lucide-react";
+import { HandHeart, Loader2, Lock, MessageSquare, Rocket, Save, Undo2, Users } from "lucide-react";
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -36,7 +34,6 @@ export default function WelcomePage() {
   const { data: official } = useOfficialAccount();
   // Même clé de cache que dans l'éditeur : react-query ne requête qu'une fois.
   // Sert ici uniquement à afficher l'état sur l'onglet, sans avoir à y entrer.
-  const { data: status } = useWelcomeStatus();
   const saveMutation = useSaveWelcomeDraft();
   const publishMutation = usePublishWelcome();
   const backfillMutation = useBackfillWelcome();
@@ -197,33 +194,10 @@ export default function WelcomePage() {
             aria-label="Sections de l'accueil"
             value={tab}
             onChange={setTab}
-            items={[
-              { value: "message" as const, label: "Message", icon: MessageSquare },
-              {
-                value: "statut" as const,
-                label: "Statut 24 h",
-                icon: Radio,
-                badge: (
-                  <TabStatePill
-                    active={!!status?.enabled}
-                    label={status?.enabled ? "Actif" : "Inactif"}
-                  />
-                ),
-              },
-            ]}
+            // Pas de statut de bienvenue chez Alanya Work (décision du 15/10/2026) :
+            // seul le message, en blocs de texte français.
+            items={[{ value: "message" as const, label: "Message", icon: MessageSquare }]}
           />
-
-          <TabPanel
-            idPrefix="welcome"
-            value="statut"
-            active={tab === "statut"}
-            className="pt-2"
-          >
-            <WelcomeStatusEditor
-              senderName={official?.nom}
-              senderAvatar={official?.avatarUrl}
-            />
-          </TabPanel>
 
           <TabPanel
             idPrefix="welcome"

@@ -11,7 +11,7 @@ export function useMediaItems() {
 export function useDeleteMedia() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => deleteMedia(id),
+    mutationFn: (id: string) => deleteMedia(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-media'] }),
   });
 }

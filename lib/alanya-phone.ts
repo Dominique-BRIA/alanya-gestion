@@ -1,4 +1,9 @@
-const VALID_LENGTHS = [3, 4, 8] as const;
+/**
+ * Alanya Work : un Alanya ID fait de 6 à 8 chiffres (`ALANYA_ID_REGEX` du
+ * backend) ; les nouveaux en font 8. Pas de « motifs réservés » : un numéro
+ * est réservé parce qu'il figure dans la table des numéros réservés.
+ */
+const VALID_LENGTHS = [6, 7, 8] as const;
 
 export function normalize(input: string | null | undefined): string {
   if (input == null) return '';
@@ -14,7 +19,7 @@ export function getTier(canonical: string): number | null {
 export function validate(canonical: string): string | null {
   if (!canonical) return 'Numéro Alanya requis';
   if (!/^\d+$/.test(canonical)) return 'Chiffres uniquement';
-  if (!getTier(canonical)) return 'Numéro invalide : 3, 4 ou 8 chiffres requis';
+  if (!getTier(canonical)) return 'Numéro invalide : 6 à 8 chiffres';
   return null;
 }
 
@@ -30,22 +35,15 @@ export function isXxyyzztt(canonical: string): boolean {
   );
 }
 
-/** Patterns réservés : 3 ch., 4 ch., ou 8 ch. XXYYZZTT. */
+/** Pas de motifs réservés chez Alanya Work (voir en tête). */
 export function isPatternReserved(canonical: string): boolean {
-  if (!canonical || !/^\d+$/.test(canonical)) return false;
-  const len = canonical.length;
-  if (len === 3 || len === 4) return true;
-  if (len === 8) return isXxyyzztt(canonical);
+  void canonical;
   return false;
 }
 
+/** Tout Alanya ID valide peut être réservé. */
 export function validateReservedCandidate(canonical: string): string | null {
-  const err = validate(canonical);
-  if (err) return err;
-  if (!isPatternReserved(canonical)) {
-    return 'Réservation limitée aux numéros 3 ou 4 chiffres, ou 8 chiffres au format XXYYZZTT (ex. 11 22 33 44)';
-  }
-  return null;
+  return validate(canonical);
 }
 
 function groupDigits(digits: string, groups: number[]): string {
@@ -61,14 +59,9 @@ function groupDigits(digits: string, groups: number[]): string {
 }
 
 export function formatDisplay(canonical: string | null | undefined): string {
-  let digits = normalize(canonical);
+  const digits = normalize(canonical);
   if (!digits) return '';
-
-  // Legacy 5–7 chiffres (ex. anciens 6 ch.) : aligner sur le schéma 8 chiffres
-  if (digits.length >= 5 && digits.length <= 7) {
-    digits = digits.padStart(8, '0');
-  }
-
+  // Pas de complément à 8 : un Alanya ID de 6 chiffres est un vrai numéro.
   if (digits.length <= 3) return digits;
   // 4+ : groupes de 2 (8 ch. Alanya, et numéros plus longs type indicatif)
   return groupDigits(digits, Array(Math.ceil(digits.length / 2)).fill(2));

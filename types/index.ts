@@ -13,7 +13,7 @@ export interface AdminStats {
 }
 
 export interface TopUser {
-  alanyaID: number;
+  alanyaID: string;
   nom: string;
   pseudo: string;
   avatarUrl: string;
@@ -26,7 +26,7 @@ export type AccountType = 0 | 1 | 2;
 export type VerificationStatus = 0 | 1 | 2 | 3 | 4 | 5;
 
 export interface User {
-  alanyaID: number;
+  alanyaID: string;
   nom: string;
   pseudo: string;
   alanyaPhone: string;
@@ -112,11 +112,11 @@ export interface ReservedAlanyaPhone {
   id: number;
   phoneCanonical: string;
   label: string;
-  createdBy: number | null;
+  createdBy: string | null;
   createdAt: string;
   createdByNom?: string | null;
   isUsed: boolean;
-  usedByAlanyaId?: number | null;
+  usedByAlanyaId?: string | null;
   usedByNom?: string | null;
   usedByPseudo?: string | null;
 }
@@ -326,7 +326,7 @@ export interface TripPurgeRun {
 }
 
 export interface Group {
-  conversID: number;
+  conversID: string;
   groupName: string;
   groupPhoto: string;
   lastMessage: string;
@@ -336,7 +336,7 @@ export interface Group {
 }
 
 export interface GroupMember {
-  alanyaID: number;
+  alanyaID: string;
   nom: string;
   pseudo: string;
   avatarUrl: string | null;
@@ -348,7 +348,7 @@ export interface GroupMember {
 }
 
 export interface GroupDetail {
-  conversID: number;
+  conversID: string;
   groupName: string;
   groupPhoto: string | null;
   lastMessage: string | null;
@@ -361,7 +361,7 @@ export interface GroupDetail {
 
 export interface Meeting {
   idMeeting: number;
-  idOrganiser: number;
+  idOrganiser: string;
   organiserNom: string;
   organiserPseudo: string;
   organiserAvatar: string;
@@ -382,12 +382,12 @@ export interface AppSettings {
 }
 
 export interface MediaItem {
-  id: number;
-  senderID: number;
+  id: string;
+  senderID: string;
   senderNom: string;
   senderPseudo: string;
   senderAvatar: string;
-  conversationID: number;
+  conversationID: string;
   conversationName: string;
   type: number;
   mediaUrl: string;
@@ -399,6 +399,8 @@ export interface MediaItem {
 
 export type BroadcastCriteriaField =
   | 'idPays'
+  | 'idCompany'
+  | 'type_compte'
   | 'idVille'
   | 'genre'
   | 'age'
@@ -446,9 +448,9 @@ export type BroadcastPushStatus =
 
 export interface Broadcast {
   id: number;
-  senderId: number;
+  senderId: string;
   senderName?: string;
-  createdBy: number;
+  createdBy: string;
   kind?: number;
   content: string;
   contentEn?: string | null;
@@ -484,7 +486,7 @@ export interface ScheduledBroadcast {
 }
 
 export interface BroadcastFormData {
-  senderId: number;
+  senderId: string;
   /** @deprecated Dérivé de `translations.fr` ; conservé le temps que le backend garde ses colonnes héritées. */
   content: string;
   /** @deprecated Dérivé de `translations.en` — voir `content`. */
@@ -547,7 +549,7 @@ export interface WelcomeConfig {
   isActive: boolean;
   isDraft: boolean;
   publishedAt: string | null;
-  publishedBy: number | null;
+  publishedBy: string | null;
   blocks: WelcomeBlock[];
 }
 
@@ -585,7 +587,7 @@ export interface WelcomeStatusConfig {
   enabled: boolean;
   blocks: WelcomeStatusBlock[];
   updatedAt: string | null;
-  updatedBy: number | null;
+  updatedBy: string | null;
   /**
    * Le serveur connaît-il les éléments multiples ?
    *
@@ -609,7 +611,7 @@ export interface Ville {
 // ── Admin Profile ──
 
 export interface AdminProfile {
-  alanyaID: number;
+  alanyaID: string;
   nom: string;
   pseudo: string;
   email: string | null;
@@ -705,7 +707,7 @@ export interface AuditEntry {
   ip: string | null;
   statusCode: number;
   createdAt: string;
-  adminId: number | null;
+  adminId: string | null;
   adminNom: string | null;
   adminEmail: string | null;
 }
@@ -725,14 +727,14 @@ export type ReportState = "open" | "reviewing" | "actioned" | "dismissed";
 export interface Report {
   id: number;
   targetType: "message" | "user";
-  targetMsgId: number | null;
-  targetUserId: number | null;
+  targetMsgId: string | null;
+  targetUserId: string | null;
   reason: string;
   /** Précision libre laissée par l'auteur du signalement. */
   note: string | null;
   state: ReportState;
   createdAt: string;
-  reporterId: number | null;
+  reporterId: string | null;
   reporterNom: string | null;
   /** Compte visé, quand le signalement porte sur un compte. */
   targetNom: string | null;
@@ -742,7 +744,7 @@ export interface Report {
    * signaler un message, c'est demander qu'il soit lu par l'équipe.
    * `null` si le message a été supprimé depuis — le signalement lui survit.
    */
-  msgSenderId: number | null;
+  msgSenderId: string | null;
   msgSenderNom: string | null;
   msgType: number | null;
   msgContent: string | null;
@@ -772,7 +774,7 @@ export interface ReportAction {
   action: string;
   note: string | null;
   createdAt: string;
-  adminId: number | null;
+  adminId: string | null;
   adminNom: string | null;
 }
 
@@ -897,7 +899,7 @@ export interface BillingSettingsRow {
   payUrl?: string | null;
   /** Codes d'activation remis pour un paiement (absent avant la migration 096 : 3). */
   codesPerPayment?: number;
-  updatedBy: number | null;
+  updatedBy: string | null;
   updatedAt: string | null;
 }
 
@@ -986,7 +988,7 @@ export type BillingPaymentProduct = 'plus' | 'phone';
 /** Ligne de GET /admin/billing/payments. Le numéro arrive déjà masqué. */
 export interface BillingPaymentRow {
   id: number;
-  alanyaId: number;
+  alanyaId: string;
   userName: string | null;
   /** Absent d'un serveur antérieur au numéro choisi : c'était alors toujours un abonnement. */
   product?: BillingPaymentProduct;
@@ -1008,7 +1010,7 @@ export interface BillingPaymentRow {
 export type BillingSubscriberFilter = 'active' | 'expiring' | 'expired' | 'all';
 
 export interface BillingSubscriberRow {
-  alanyaId: number;
+  alanyaId: string;
   userName: string | null;
   alanyaPhone: string | null;
   plan: string | null;
@@ -1126,7 +1128,7 @@ export type VerificationRequestStatus =
 /** Ligne de GET /admin/verifications et de l'historique d'un compte. */
 export interface VerificationRow {
   id: number;
-  alanyaId: number;
+  alanyaId: string;
   userName: string | null;
   pseudo: string | null;
   avatarUrl: string | null;
@@ -1333,7 +1335,7 @@ export interface StickerSettings {
   creationEnabled: 0 | 1;
   animatedEnabled: 0 | 1;
   minAppVersion: string | null;
-  updatedBy: number | null;
+  updatedBy: string | null;
   updatedAt: string | null;
 }
 
@@ -1349,7 +1351,7 @@ export interface StickerSettingsPatch {
 export interface StickerReportRow {
   id: number;
   assetId: number;
-  reporterId: number;
+  reporterId: string;
   /** Motif TINYINT côté base ; à défaut une chaîne, affichée telle quelle. */
   reason: number | string;
   status: number;

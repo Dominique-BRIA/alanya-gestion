@@ -33,7 +33,7 @@ function toAuditEntry(row: Wire<import('@/types').AuditEntry>): import('@/types'
     ip: (row.ip as string) ?? null,
     statusCode: Number(row.statusCode ?? 0),
     createdAt: String(row.createdAt ?? ''),
-    adminId: row.adminId != null ? Number(row.adminId) : null,
+    adminId: row.adminId != null ? String(row.adminId) : null,
     adminNom: (row.adminNom as string) ?? null,
     adminEmail: (row.adminEmail as string) ?? null,
   };

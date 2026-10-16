@@ -38,7 +38,7 @@ export default function GroupsPage() {
   const { addToast } = useToast();
   const router = useRouter();
   const deleteGroup = useDeleteGroup();
-  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [values, setValues] = useState<Record<string, string>>(GROUP_DEFAULTS);
@@ -66,10 +66,10 @@ export default function GroupsPage() {
     });
   }, [groups, search, values]);
 
-  function handleDelete(id: number) {
+  function handleDelete(id: string) {
     deleteGroup.mutate(id, {
       onSuccess: () => {
-        addToast({ title: "Groupe supprimé", description: `Groupe #${id}`, variant: "success" });
+        addToast({ title: "Groupe supprimé", description: `Groupe supprimé définitivement`, variant: "success" });
         setDeleteId(null);
       },
       onError: () => {

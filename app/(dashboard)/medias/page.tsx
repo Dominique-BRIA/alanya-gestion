@@ -33,7 +33,7 @@ export default function MediasPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [preview, setPreview] = useState<MediaItem | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const { data: mediaItems, isLoading, isFetching, isError, refetch } = useMediaItems();
   const deleteMutation = useDeleteMedia();
   const { addToast } = useToast();

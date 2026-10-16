@@ -20,8 +20,8 @@ const handwriting = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Alanya Admin",
-  description: "Tableau de bord d'administration Alanya",
+  title: "Alanya Work · Gestion",
+  description: "Console de gestion d'Alanya Work",
 };
 
 export default function RootLayout({

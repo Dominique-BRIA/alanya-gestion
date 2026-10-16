@@ -9,12 +9,17 @@
  * Ajouter une langue ici et côté backend suffit désormais : plus de colonne
  * `_xx` à poser sur trois tables, plus d'onglet à câbler à la main.
  */
+// Alanya Work : contenus officiels en FRANÇAIS SEUL (décision du 15/10/2026) —
+// le serveur n'enregistre que `translations.fr` ; les autres langues restent dans les types.
 export const CONTENT_LOCALES = ["fr", "en", "zh"] as const;
+
+/** Les langues PROPOSÉES à la saisie : le français seul, les autres restent connues du code. */
+export const VISIBLE_CONTENT_LOCALES: readonly ContentLocale[] = ["fr"];
 
 export type ContentLocale = (typeof CONTENT_LOCALES)[number];
 
 /** Langues dont la saisie est obligatoire pour publier. */
-export const REQUIRED_CONTENT_LOCALES: readonly ContentLocale[] = ["fr", "en"];
+export const REQUIRED_CONTENT_LOCALES: readonly ContentLocale[] = ["fr"];
 
 /**
  * Libellés d'onglets, dans la langue elle-même.

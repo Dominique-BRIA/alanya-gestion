@@ -1,11 +1,11 @@
+import { TYPE_COMPTE_LABELS } from '@/lib/type-compte';
 /** Libellés du socle de compte — `users.account_type` / `users.verification_status`. */
 
-/** Rôle d'administration — `users.type_compte`, distinct du genre de compte. */
-export const ROLE_LABELS: Record<number, string> = {
-  0: "Utilisateur",
-  1: "Admin",
-  2: "Super Admin",
-};
+/**
+ * `users.type_compte` — chez Alanya Work, ce qu'EST le compte (agent, centre…),
+ * pas un rôle d'administration. Voir `lib/type-compte.ts`.
+ */
+export const ROLE_LABELS: Record<number, string> = TYPE_COMPTE_LABELS;
 
 export const ACCOUNT_TYPE_LABELS: Record<number, string> = {
   0: "Personnel",

@@ -1,4 +1,5 @@
 import { getAdminToken } from '@/lib/auth';
+import { API_BASE } from '@/lib/api';
 
 export type ExportFormat = 'pdf' | 'csv';
 
@@ -48,12 +49,7 @@ function resolveExportUrl(resource: ExportResource, params: AdminExportParams): 
   }
   const query = qs.toString();
 
-  // Proxy same-origin (basePath /admin → /admin/api/export/…)
-  if (typeof window !== 'undefined') {
-    return `/admin/api/export/${resource}${query ? `?${query}` : ''}`;
-  }
-
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://www.alanya237.com/api';
+  // L'API est à la même origine (alanyavox.com/api) : plus besoin de relais.
   return `${API_BASE}${BACKEND_EXPORT_PATHS[resource]}${query ? `?${query}` : ''}`;
 }
 

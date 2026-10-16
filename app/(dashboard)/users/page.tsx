@@ -47,7 +47,7 @@ import type { UsersApiParams } from "@/lib/api-params";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ROLE_LABELS as roleLabels, ACCOUNT_TYPE_LABELS as accountTypeLabels } from "@/lib/account-labels";
 
-const roleColors: Record<number, string> = { 0: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300", 1: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300", 2: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" };
+const roleColors: Record<number, string> = { 0: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300", 2: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300", 3: "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300", 4: "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300", 5: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300", 9: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" };
 const accountTypeColors: Record<number, string> = {
   0: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
   1: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
@@ -58,14 +58,17 @@ const statusOptions = [
   { value: "", label: "Tous" },
   { value: "online", label: "En ligne" },
   { value: "banned", label: "Bannis" },
-  { value: "admin", label: "Admins" },
+  { value: "admin", label: "Modérateurs" },
 ];
 
 const roleOptions = [
   { value: "", label: "Tous" },
-  { value: "0", label: "User" },
-  { value: "1", label: "Admin" },
-  { value: "2", label: "Super Admin" },
+  { value: "0", label: "Personnes" },
+  { value: "2", label: "Agents d'entreprise" },
+  { value: "3", label: "Centres d'appels" },
+  { value: "4", label: "Centres vocaux" },
+  { value: "5", label: "Compte officiel" },
+  { value: "9", label: "Modérateurs" },
 ];
 
 export default function UsersPage() {
@@ -92,7 +95,7 @@ export default function UsersPage() {
   const [searchInput, setSearchInput] = useState(searchParams.get("q") || "");
   const search = useDebouncedValue(searchInput, 300);
   const [showFilters, setShowFilters] = useState(false);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
 
   // Plage de date effective : les dates explicites priment sur la présélection
   // Période. Vide → le serveur n'applique aucun filtre de date.
@@ -125,9 +128,9 @@ export default function UsersPage() {
   const roleMutation = useSetUserRole();
   const deleteMutation = useDeleteUser();
 
-  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
-  const [confirmBan, setConfirmBan] = useState<{ id: number; reason: string } | null>(null);
-  const [confirmRole, setConfirmRole] = useState<{ id: number; role: number } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [confirmBan, setConfirmBan] = useState<{ id: string; reason: string } | null>(null);
+  const [confirmRole, setConfirmRole] = useState<{ id: string; role: number } | null>(null);
   const [confirmBulkBan, setConfirmBulkBan] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
 
@@ -163,7 +166,7 @@ export default function UsersPage() {
     else setFilters({ sort: key, order: "desc" });
   }, [sort, order, setFilters]);
 
-  const toggleSelect = useCallback((id: number) => {
+  const toggleSelect = useCallback((id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -250,18 +253,9 @@ export default function UsersPage() {
               </select>
             </div>
             <div className="space-y-1.5 min-w-[140px]">
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Rôle</label>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Type de compte</label>
               <select value={typeCompte} onChange={(e) => { setFilters({ typeCompte: e.target.value, page: undefined }); }} className="flex h-9 w-full items-center rounded-lg border border-input bg-card px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 {roleOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-              </select>
-            </div>
-            <div className="space-y-1.5 min-w-[140px]">
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Type de compte</label>
-              <select value={accountType} onChange={(e) => { setFilters({ accountType: e.target.value, page: undefined }); }} className="flex h-9 w-full items-center rounded-lg border border-input bg-card px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
-                <option value="">Tous</option>
-                <option value="0">Personnel</option>
-                <option value="1">Business</option>
-                <option value="2">Officiel</option>
               </select>
             </div>
             <div className="space-y-1.5 min-w-[140px]">
@@ -610,7 +604,7 @@ function timeAgo(dateStr: string): string {
 }
 
 function ActionsMenu({ user, can, onView, onBan, onUnban, onRoleUp, onRoleDown, onDelete }: {
-  user: { alanyaID: number; typeCompte: number; exclus: boolean };
+  user: { alanyaID: string; typeCompte: number; exclus: boolean };
   can: (permission: string) => boolean;
   onView: () => void;
   onBan: () => void;

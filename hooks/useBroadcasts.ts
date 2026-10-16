@@ -10,6 +10,7 @@ import {
   cancelScheduledBroadcast,
 } from '@/lib/mock-data';
 import type { BroadcastFormData, BroadcastCriteria } from '@/types';
+import { api } from '@/lib/api';
 
 interface BroadcastsParams {
   page?: number;
@@ -89,6 +90,18 @@ export function useVilles(idPays: number | null, search = '') {
     queryKey: ['admin-villes', idPays, search],
     queryFn: () => fetchVilles(idPays!, search),
     enabled: idPays != null && idPays > 0,
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** Les entreprises d'alanyaCenter, pour cibler leurs agents. */
+export function useEntreprises() {
+  return useQuery({
+    queryKey: ['admin-entreprises'],
+    queryFn: async () => {
+      const res = await api.get('/admin/entreprises');
+      return (res.data?.items ?? []) as { idCompany: number; libelle: string; comptes: number }[];
+    },
     staleTime: 5 * 60_000,
   });
 }
