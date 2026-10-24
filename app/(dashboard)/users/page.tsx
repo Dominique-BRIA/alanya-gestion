@@ -47,7 +47,7 @@ import type { UsersApiParams } from "@/lib/api-params";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ROLE_LABELS as roleLabels, ACCOUNT_TYPE_LABELS as accountTypeLabels } from "@/lib/account-labels";
 
-const roleColors: Record<number, string> = { 0: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300", 2: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300", 3: "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300", 4: "bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300", 5: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300", 9: "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" };
+const roleColors: Record<number, string> = { 0: "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300", 1: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300", 2: "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300" };
 const accountTypeColors: Record<number, string> = {
   0: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400",
   1: "bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300",
@@ -58,17 +58,14 @@ const statusOptions = [
   { value: "", label: "Tous" },
   { value: "online", label: "En ligne" },
   { value: "banned", label: "Bannis" },
-  { value: "admin", label: "Modérateurs" },
+  { value: "admin", label: "Admins" },
 ];
 
 const roleOptions = [
   { value: "", label: "Tous" },
-  { value: "0", label: "Personnes" },
-  { value: "2", label: "Agents d'entreprise" },
-  { value: "3", label: "Centres d'appels" },
-  { value: "4", label: "Centres vocaux" },
-  { value: "5", label: "Compte officiel" },
-  { value: "9", label: "Modérateurs" },
+  { value: "0", label: "User" },
+  { value: "1", label: "Admin" },
+  { value: "2", label: "Super Admin" },
 ];
 
 export default function UsersPage() {
@@ -253,9 +250,18 @@ export default function UsersPage() {
               </select>
             </div>
             <div className="space-y-1.5 min-w-[140px]">
-              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Type de compte</label>
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Rôle</label>
               <select value={typeCompte} onChange={(e) => { setFilters({ typeCompte: e.target.value, page: undefined }); }} className="flex h-9 w-full items-center rounded-lg border border-input bg-card px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 {roleOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5 min-w-[140px]">
+              <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Type de compte</label>
+              <select value={accountType} onChange={(e) => { setFilters({ accountType: e.target.value, page: undefined }); }} className="flex h-9 w-full items-center rounded-lg border border-input bg-card px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <option value="">Tous</option>
+                <option value="0">Personnel</option>
+                <option value="1">Business</option>
+                <option value="2">Officiel</option>
               </select>
             </div>
             <div className="space-y-1.5 min-w-[140px]">

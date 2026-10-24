@@ -41,8 +41,7 @@ export default function NewUserPage() {
   const router = useRouter();
   const { addToast } = useToast();
   const { can } = usePermissions();
-  // Créer un modérateur : la permission de création suffit (pas de « rôle » chez nous).
-  const isSuper = can("users.create");
+  const isSuper = can("users.role");
   const createMutation = useCreateUser();
   const { data: countries = [], isLoading: loadingCountries } = useCountries();
 
@@ -217,6 +216,7 @@ export default function NewUserPage() {
                 }}
               >
                 <option value={0}>Personnel</option>
+                <option value={1}>Business</option>
                 <option value={2}>Officiel</option>
               </select>
               <p className="mt-1 text-xs text-zinc-500">
@@ -466,8 +466,9 @@ export default function NewUserPage() {
                   disabled={accountType !== 0}
                   onChange={(e) => setTypeCompte(Number(e.target.value))}
                 >
-                  <option value={0}>Personne</option>
-                  <option value={9}>Modérateur</option>
+                  <option value={0}>Utilisateur</option>
+                  <option value={1}>Admin</option>
+                  <option value={2}>Super-admin</option>
                 </select>
               </div>
             )}

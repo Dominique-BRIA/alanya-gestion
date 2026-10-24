@@ -47,7 +47,7 @@ export default function LoginPage() {
         status === 401
           ? "Identifiant ou mot de passe incorrect"
           : status === 403
-            ? "Ce compte a été désactivé"
+            ? "Ce compte n'a pas accès à l'administration"
             : status === 429
               ? "Trop de tentatives : réessayez dans 15 minutes"
               : "Erreur de connexion"
@@ -71,22 +71,22 @@ export default function LoginPage() {
               priority
             />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">Alanya Work · Gestion</CardTitle>
+          <CardTitle className="text-2xl font-bold tracking-tight">Alanya Admin</CardTitle>
           <CardDescription className="text-sm text-muted-foreground">
-            Connectez-vous avec votre compte superroot d&apos;alanyaCenter
+            Connectez-vous pour accéder au tableau de bord
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2" style={{ animation: "fadeSlideIn 0.4s ease-out 0.1s both" }}>
-              <label className="text-sm font-medium" htmlFor="email">Identifiant</label>
+              <label className="text-sm font-medium" htmlFor="email">E-mail ou numéro Alanya</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
                 <Input
                   id="email"
                   type="text"
                   autoComplete="username"
-                  placeholder="superroot"
+                  placeholder="admin@exemple.com ou 12345678"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

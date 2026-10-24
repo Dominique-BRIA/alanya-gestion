@@ -1,8 +1,7 @@
 import { api } from './api';
 
-/** Connexion du superroot d'alanyaCenter : son identifiant, pas une adresse e-mail. */
-export async function adminLogin(username: string, password: string) {
-  const res = await api.post('/admin/auth/login', { username, password });
+export async function adminLogin(email: string, password: string) {
+  const res = await api.post('/admin/auth/login', { email, password });
   const { accessToken, refreshToken, user } = res.data;
   localStorage.setItem('admin_token', accessToken);
   if (refreshToken) localStorage.setItem('admin_refresh', refreshToken);

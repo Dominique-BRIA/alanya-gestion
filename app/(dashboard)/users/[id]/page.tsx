@@ -33,6 +33,7 @@ import {
 export default function UserDetailPage() {
   const params = useParams();
   const router = useRouter();
+  // Nos comptes ont des UUID : l'identifiant reste du texte.
   const id = params.id as string;
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -363,6 +364,7 @@ export default function UserDetailPage() {
               </Card>
             );
           })()}
+
 
           <PhoneHistoryCard userId={id} />
         </div>
