@@ -64,6 +64,10 @@ import {
   type DraftCondition,
 } from "@/components/broadcasts/CriteriaBuilder";
 import { RecipientEstimate, useRecipientEstimate } from "@/components/broadcasts/RecipientEstimate";
+import {
+  BroadcastButtonsEditor,
+  broadcastButtonErrors,
+} from "@/components/broadcasts/BroadcastButtonsEditor";
 import { PreviewPanel } from "@/components/preview/PreviewPanel";
 import { StatusBackgroundPicker } from "@/components/preview/StatusBackgroundPicker";
 import type { PreviewContent } from "@/components/preview/PreviewStage";
@@ -74,7 +78,7 @@ import { useBroadcasts, useCreateBroadcast, useEntreprises, useOfficialAccount }
 import { statutMediaType } from "@/lib/broadcast-payload";
 import { formatCriteriaSummary } from "@/lib/criteria-labels";
 import { broadcastToPreview, PUSH_BODY_MAX } from "@/lib/preview/broadcast-to-preview";
-import type { BroadcastFormData } from "@/types";
+import type { BroadcastButton, BroadcastFormData } from "@/types";
 
 /**
  * Nature de la diffusion.
@@ -112,6 +116,7 @@ export default function NewBroadcastPage() {
   const [nature, setNature] = useState(0);
   const [mediaUrl, setMediaUrl] = useState("");
   const [backgroundColor, setBackgroundColor] = useState("");
+  const [buttons, setButtons] = useState<BroadcastButton[]>([]);
   const [scheduledAt, setScheduledAt] = useState("");
   const [criteriaDrafts, setCriteriaDrafts] = useState<DraftCondition[]>([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -140,10 +145,11 @@ export default function NewBroadcastPage() {
           type: isStatut ? statutMediaType(mediaUrl) : nature,
           mediaUrl,
           backgroundColor,
+          buttons: isStatut ? [] : buttons,
         },
         lang,
       ),
-    [isStatut, translations, nature, mediaUrl, backgroundColor, lang],
+    [isStatut, translations, nature, mediaUrl, backgroundColor, buttons, lang],
   );
 
   const previewContent = useMemo<PreviewContent>(() => {
@@ -182,9 +188,10 @@ export default function NewBroadcastPage() {
     if (mediaRequired && !mediaUrl.trim()) {
       list.push(`Un média est requis pour une diffusion de type ${nature === 1 ? "image" : "vidéo"}.`);
     }
+    if (!isStatut) list.push(...broadcastButtonErrors(buttons));
     if (!official) list.push("Aucun compte officiel n'existe : la diffusion est impossible.");
     return list;
-  }, [criteriaDrafts, translations, mediaRequired, mediaUrl, nature, official]);
+  }, [criteriaDrafts, translations, mediaRequired, mediaUrl, nature, official, isStatut, buttons]);
 
   const canSend =
     errors.length === 0 && !createMutation.isPending && !estimateLoading && estimatedCount != null;
@@ -207,6 +214,7 @@ export default function NewBroadcastPage() {
       scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
       estimate: confirmedCount ?? estimatedCount ?? undefined,
       confirmedEstimate: confirmedCount ?? estimatedCount ?? undefined,
+      buttons: isStatut ? undefined : buttons,
     };
 
     createMutation.mutate(data, {
@@ -442,8 +450,25 @@ export default function NewBroadcastPage() {
             </div>
           </Section>
 
+          {/* Les boutons d'une annonce (24/10/2026) — pas sur un statut, qui
+              n'a pas de bulle où les poser. */}
+          {!isStatut && (
+            <Section
+              step={3}
+              title="Boutons (facultatif)"
+              description="Jusqu'à 3 boutons sous le message : un écran de l'application ou un lien. Libellé obligatoire en français et en anglais."
+            >
+              <BroadcastButtonsEditor
+                buttons={buttons}
+                onChange={setButtons}
+                lang={lang}
+                disabled={createMutation.isPending}
+              />
+            </Section>
+          )}
+
           <Section
-            step={3}
+            step={isStatut ? 3 : 4}
             title="Audience"
             description="Toutes les conditions doivent être vraies ; sans condition, tous les utilisateurs éligibles"
           >
@@ -458,7 +483,7 @@ export default function NewBroadcastPage() {
           </Section>
 
           <Section
-            step={4}
+            step={isStatut ? 4 : 5}
             title="Planification"
             description="Laisser vide pour diffuser immédiatement"
           >

@@ -485,6 +485,17 @@ export interface ScheduledBroadcast {
   payload: Record<string, unknown>;
 }
 
+/**
+ * Un bouton d'une diffusion (24/10/2026) : un écran de l'application
+ * (`route`) ou un lien (`url`), libellé par langue. Il arrive sous le message,
+ * comme le bloc « Boutons » de la bienvenue.
+ */
+export interface BroadcastButton {
+  action: "url" | "route";
+  target: string;
+  labels: Translations;
+}
+
 export interface BroadcastFormData {
   senderId: string;
   /** @deprecated Dérivé de `translations.fr` ; conservé le temps que le backend garde ses colonnes héritées. */
@@ -506,6 +517,8 @@ export interface BroadcastFormData {
   estimate?: number;
   /** Estimation confirmée — comparée au recomptage serveur au moment de l'envoi. */
   confirmedEstimate?: number;
+  /** Boutons sous le message — jamais sur un statut. */
+  buttons?: BroadcastButton[];
 }
 
 export interface BroadcastsResponse {

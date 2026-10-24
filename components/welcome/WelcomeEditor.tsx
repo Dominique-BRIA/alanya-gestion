@@ -30,12 +30,7 @@ import {
 } from "@/lib/content-locales";
 import { cn } from "@/lib/utils";
 import type { WelcomeBlock, WelcomeBlockType, WelcomeCtaButton } from "@/types";
-
-const ROUTE_OPTIONS = [
-  { value: "profile", label: "Profil" },
-  { value: "statuses", label: "Statuts" },
-  { value: "help", label: "Aide et FAQ" },
-];
+import { ROUTE_OPTIONS } from "@/lib/cta-routes";
 
 const BLOCK_META: Record<WelcomeBlockType, { label: string; Icon: typeof MessageSquare }> = {
   text: { label: "Texte", Icon: MessageSquare },

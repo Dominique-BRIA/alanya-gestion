@@ -31,5 +31,7 @@ export function toBroadcastApiPayload(data: import("@/types").BroadcastFormData)
     // vérification anti-obsolescence côté serveur (409 « Estimation obsolète »).
     estimate: data.estimate ?? data.confirmedEstimate,
     confirmedEstimate: data.confirmedEstimate,
+    // Un statut ne porte pas de bouton : le serveur le refuserait.
+    buttons: !isStatus && data.buttons?.length ? data.buttons : undefined,
   };
 }

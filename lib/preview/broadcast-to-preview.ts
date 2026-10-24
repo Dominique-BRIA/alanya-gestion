@@ -1,4 +1,5 @@
-import type { PreviewLang, PreviewMessage } from "@/components/preview/types";
+import { WELCOME_CTA_MSG_TYPE, type PreviewLang, type PreviewMessage } from "@/components/preview/types";
+import type { BroadcastButton } from "@/types";
 import { statutMediaType } from "@/lib/broadcast-payload";
 import type { Translations } from "@/lib/content-locales";
 import { resolveLocalized } from "./localized";
@@ -12,6 +13,8 @@ export interface BroadcastPreviewInput {
   mediaUrl?: string | null;
   /** Statut texte uniquement — `#RRGGBB` ; vide = indigo de marque. */
   backgroundColor?: string | null;
+  /** Boutons sous le message (`kind = 0` seulement). */
+  buttons?: BroadcastButton[];
 }
 
 export type BroadcastPreviewResult =
@@ -50,10 +53,17 @@ export function broadcastToPreview(
     };
   }
 
-  return {
-    mode: "chat",
-    messages: [{ type: input.type, content: text || null, mediaUrl }],
-  };
+  const messages: PreviewMessage[] = [{ type: input.type, content: text || null, mediaUrl }];
+  // Les boutons arrivent en message à part, juste après — le même rendu que
+  // le bloc « Boutons » de la bienvenue. Un bouton sans libellé dans cette
+  // langue (ni dans le repli) ou sans cible n'est pas envoyé.
+  const buttons = (input.buttons ?? [])
+    .map((b) => ({ label: resolveLocalized(b.labels, lang), action: b.action, target: b.target.trim() }))
+    .filter((b) => b.label && b.target);
+  if (buttons.length) {
+    messages.push({ type: WELCOME_CTA_MSG_TYPE, content: JSON.stringify({ buttons }), mediaUrl: null });
+  }
+  return { mode: "chat", messages };
 }
 
 /** Longueur du corps de la notification push (broadcastService.js:356-364). */
