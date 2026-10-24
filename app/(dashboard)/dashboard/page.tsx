@@ -85,7 +85,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <DashboardBanner
-        adminName={user?.nom || user?.email}
+        adminName={user?.nom || user?.pseudo || user?.email}
         onlineUsers={stats?.onlineUsers}
         messagesToday={stats?.messagesPeriod}
       />

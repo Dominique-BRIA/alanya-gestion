@@ -155,7 +155,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800 transition-colors truncate"
             >
               <UserCircle className="h-5 w-5 shrink-0 text-indigo-500" />
-              <span className="truncate">{user.nom || user.email}</span>
+              <span className="truncate">{user.nom || user.pseudo || user.email}</span>
             </button>
           )}
           <button
