@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { Moon, Sun } from "lucide-react";
 import type { AppTheme, PreviewLang } from "./types";
-import { VISIBLE_CONTENT_LOCALES } from "@/lib/content-locales";
+import { CONTENT_LOCALES } from "@/lib/content-locales";
 
 /**
  * Bascule clair / sombre de l'aperçu.
@@ -81,7 +81,7 @@ export function LangToggle({
       aria-label="Langue de l'aperçu"
       className={cn("flex w-fit gap-1 rounded-lg bg-zinc-100 p-1 dark:bg-zinc-800", className)}
     >
-      {VISIBLE_CONTENT_LOCALES.map((l) => (
+      {CONTENT_LOCALES.map((l) => (
         <button
           key={l}
           type="button"

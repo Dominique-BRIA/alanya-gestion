@@ -14,6 +14,9 @@ export function toBroadcastApiPayload(data: import("@/types").BroadcastFormData)
     // (pickLocalized). Sans ce champ, les anglophones reçoivent le texte
     // français quel que soit ce qui a été saisi dans l'onglet EN.
     contentEn: data.contentEn,
+    // Toutes les langues saisies, chinois compris : la console d'origine ne
+    // les envoyait pas, et le texte chinois se perdait (24/10/2026).
+    translations: data.translations,
     type: isStatus ? statutMediaType(data.mediaUrl) : data.type,
     mediaUrl: data.mediaUrl,
     // La couleur n'a de sens que pour un statut texte : un statut média la

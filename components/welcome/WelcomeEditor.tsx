@@ -211,7 +211,7 @@ export function WelcomeEditor({
           <span className="mr-1 text-xs font-medium uppercase tracking-wider text-zinc-500">
             Ajouter
           </span>
-          {(["text"] as WelcomeBlockType[]).map((type) => {
+          {(Object.keys(BLOCK_META) as WelcomeBlockType[]).map((type) => {
             const { label, Icon } = BLOCK_META[type];
             return (
               <Button

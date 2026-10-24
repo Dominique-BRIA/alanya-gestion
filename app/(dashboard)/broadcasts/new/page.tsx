@@ -83,14 +83,12 @@ import type { BroadcastFormData } from "@/types";
  * 1 statut 24 h) et `type` (le type média du message). « Statut 24 h » est le
  * seul choix qui change `kind` ; son `type` est déduit de l'URL du média.
  */
-// Alanya Work : une diffusion est un MESSAGE TEXTE, en français (décisions du
-// 15/10/2026) — ni média, ni statut ; le serveur refuse les autres natures.
-const NATURES: readonly { value: number; label: string; hint: string; icon: typeof FileText; isStatus: boolean }[] = [
+const NATURES = [
   { value: 0, label: "Message", hint: "Texte seul", icon: FileText, isStatus: false },
-];
-// Gardés importés pour les natures qui reviendraient : rien ne les affiche aujourd'hui.
-void ImageIcon;
-void Video;
+  { value: 1, label: "Image", hint: "Photo + légende", icon: ImageIcon, isStatus: false },
+  { value: 2, label: "Vidéo", hint: "Vidéo + légende", icon: Video, isStatus: false },
+  { value: 3, label: "Statut 24 h", hint: "Expire après 24 h", icon: Radio, isStatus: true },
+] as const;
 
 function newClientId() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
@@ -357,7 +355,7 @@ export default function NewBroadcastPage() {
           <Section
             step={2}
             title="Contenu"
-            description={`En ${REQUIRED_LOCALE_NAMES.toLowerCase()} : c'est la langue des messages officiels d'Alanya Work`}
+            description={`${REQUIRED_LOCALE_NAMES} obligatoires ; les autres langues sont facultatives et retombent sur la chaîne de repli`}
           >
             <div className="space-y-3">
               <LangTabs value={lang} onChange={setLang} translations={translations} />
