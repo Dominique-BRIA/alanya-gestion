@@ -12,6 +12,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { SettingsPageSkeleton } from "@/components/skeletons";
 import { BadgesCard } from "@/components/settings/BadgesCard";
 import { AppelsCard } from "@/components/settings/AppelsCard";
+import { DeveloppeurCard } from "@/components/settings/DeveloppeurCard";
 import { useToast } from "@/components/ui/toast";
 import { useSettings, useUpdateSettings } from "@/hooks/useSettings";
 import { useSecuritySettings, useUpdateSecuritySettings } from "@/hooks/useSecurity";
@@ -234,6 +235,8 @@ export default function SettingsPage() {
         </Card>
 
         <AppelsCard canEdit={isSuper} />
+
+        <DeveloppeurCard canEdit={isSuper} />
 
         <BadgesCard canEdit={can("verifications.decide")} />
 

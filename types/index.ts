@@ -401,6 +401,22 @@ export interface CallSettings {
   modifiePar: string | null;
 }
 
+/** GET /admin/developer-settings — l'espace développeur (07/11/2026). */
+export interface DeveloperSettings {
+  /** Combien d'enseignes une personne peut créer. 0 ferme la création. */
+  enseignesParPersonne: number;
+  /** Plus grande valeur acceptée par le serveur. */
+  maximum: number;
+  /** Enseignes existantes, toutes personnes confondues. */
+  enseignes: number;
+  /** Personnes qui ont au moins une enseigne. */
+  personnes: number;
+  /** Personnes qui ont déjà atteint la limite actuelle. */
+  personnesALaLimite: number;
+  modifieLe: string | null;
+  modifiePar: string | null;
+}
+
 export interface MediaItem {
   id: string;
   senderID: string;
