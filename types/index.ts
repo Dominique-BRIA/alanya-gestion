@@ -381,6 +381,20 @@ export interface AppSettings {
   apiUrl: string;
 }
 
+/** Quels relais TURN passent en premier dans les appels. */
+export type RelaisPrincipal = 'cloudflare' | 'nos_relais';
+
+/** GET /admin/call-settings — les réglages des appels. */
+export interface CallSettings {
+  relaisPrincipal: RelaisPrincipal;
+  /** Faux : Cloudflare n'est pas configuré sur le serveur et ne porte aucun appel. */
+  cloudflareConfigure: boolean;
+  /** Les domaines de nos relais coturn. */
+  nosRelais: string[];
+  modifieLe: string | null;
+  modifiePar: string | null;
+}
+
 export interface MediaItem {
   id: string;
   senderID: string;
