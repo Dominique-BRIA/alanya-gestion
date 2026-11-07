@@ -384,9 +384,15 @@ export interface AppSettings {
 /** Quels relais TURN passent en premier dans les appels. */
 export type RelaisPrincipal = 'cloudflare' | 'nos_relais';
 
+/** Le moteur des appels de groupe et des réunions. */
+export type MoteurGroupes = 'mesh' | 'sfu';
+
 /** GET /admin/call-settings — les réglages des appels. */
 export interface CallSettings {
   relaisPrincipal: RelaisPrincipal;
+  moteurGroupes: MoteurGroupes;
+  /** Faux : les clés du SFU manquent sur le serveur, il ne peut pas être choisi. */
+  sfuConfigure: boolean;
   /** Faux : Cloudflare n'est pas configuré sur le serveur et ne porte aucun appel. */
   cloudflareConfigure: boolean;
   /** Les domaines de nos relais coturn. */
