@@ -14,8 +14,11 @@ import { AlertTriangle, Clock, Loader2, PhoneCall } from "lucide-react";
  *  - quels relais TURN passent en premier (les deux restent toujours proposés
  *    aux téléphones : le principal porte l'appel quand il répond, l'autre
  *    prend le relais sinon) ;
- *  - le moteur des appels de groupe et des réunions : le système actuel
- *    (mesh) ou le SFU de Cloudflare. Le tête-à-tête reste toujours en direct.
+ *  - le moteur des appels de groupe et des réunions : P2P Meeting (mesh) ou
+ *    SFU Meeting. Le tête-à-tête reste toujours en direct.
+ *
+ * Libellés demandés le 09/11/2026 : le nom du fournisseur ne s'affiche pas.
+ * P2P Alanya = nos relais ; P2P Cloud = le relais `cloudflare`.
  */
 
 type Option<T> = { valeur: T; titre: string; detail: string };
@@ -92,7 +95,7 @@ export function AppelsCard({ canEdit }: { canEdit: boolean }) {
       {
         onSuccess: () =>
           addToast({
-            title: valeur === "cloudflare" ? "Cloudflare devient le relais principal" : "Nos relais deviennent principaux",
+            title: valeur === "cloudflare" ? "P2P Cloud devient le relais principal" : "P2P Alanya devient le relais principal",
             description: "Effet sur les appels suivants, sous 10 secondes.",
             variant: "success",
           }),
@@ -107,14 +110,14 @@ export function AppelsCard({ canEdit }: { canEdit: boolean }) {
       {
         onSuccess: () =>
           addToast({
-            title: valeur === "sfu" ? "Groupes et réunions : SFU Cloudflare" : "Groupes et réunions : système actuel",
+            title: valeur === "sfu" ? "Groupes et réunions : SFU Meeting" : "Groupes et réunions : P2P Meeting",
             description: "Effet sur les appels et réunions qui commencent, sous 10 secondes.",
             variant: "success",
           }),
         onError: () =>
           addToast({
             title: "Échec",
-            description: valeur === "sfu" ? "Le SFU n'est pas configuré sur le serveur, ou action réservée au super-admin" : "Action réservée au super-admin",
+            description: valeur === "sfu" ? "SFU Meeting n'est pas configuré sur le serveur, ou action réservée au super-admin" : "Action réservée au super-admin",
             variant: "error",
           }),
         onSettled: () => setConfirmerSfu(false),
@@ -160,14 +163,14 @@ export function AppelsCard({ canEdit }: { canEdit: boolean }) {
                 desactive={!canEdit || update.isPending}
                 onChoisir={choisirRelais}
                 options={[
-                  { valeur: "cloudflare", titre: "Cloudflare principal", detail: `Le TURN de Cloudflare d'abord. Secours : ${nosRelais}.` },
-                  { valeur: "nos_relais", titre: "Nos relais principaux", detail: `${nosRelais} d'abord. Secours : Cloudflare.` },
+                  { valeur: "nos_relais", titre: "P2P Alanya", detail: `Nos relais d'abord (${nosRelais}). Secours : P2P Cloud.` },
+                  { valeur: "cloudflare", titre: "P2P Cloud", detail: "Le relais cloud d'abord. Secours : P2P Alanya." },
                 ]}
               />
               {!data.cloudflareConfigure && (
                 <p className="flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400">
                   <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  Cloudflare n&apos;est pas configuré sur le serveur : seuls nos relais portent les appels, quel que soit ce choix.
+                  P2P Cloud n&apos;est pas configuré sur le serveur : seul P2P Alanya porte les appels, quel que soit ce choix.
                 </p>
               )}
             </section>
@@ -185,18 +188,18 @@ export function AppelsCard({ canEdit }: { canEdit: boolean }) {
                 indisponible={(v) => v === "sfu" && !data.sfuConfigure}
                 onChoisir={choisirMoteur}
                 options={[
-                  { valeur: "mesh", titre: "Système actuel", detail: "Chaque participant se connecte à chacun des autres." },
-                  { valeur: "sfu", titre: "SFU Cloudflare", detail: "Une seule connexion par participant, vers Cloudflare, qui redistribue." },
+                  { valeur: "mesh", titre: "P2P Meeting", detail: "Chaque participant se connecte à chacun des autres." },
+                  { valeur: "sfu", titre: "SFU Meeting", detail: "Une seule connexion par participant, vers un serveur qui redistribue." },
                 ]}
               />
               {!data.sfuConfigure ? (
                 <p className="flex items-start gap-1.5 text-xs text-amber-700 dark:text-amber-400">
                   <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  Le SFU n&apos;est pas encore configuré sur le serveur (application Cloudflare Realtime SFU à créer).
+                  SFU Meeting n&apos;est pas encore configuré sur le serveur.
                 </p>
               ) : (
                 <p className="text-xs text-zinc-500">
-                  Un groupe ou une réunion ne passe en SFU que si tous ses participants ont la dernière version d&apos;Alanya Work ; sinon, il reste sur le système actuel.
+                  Un groupe ou une réunion ne passe en SFU Meeting que si tous ses participants ont la dernière version d&apos;Alanya Work ; sinon, il reste en P2P Meeting.
                 </p>
               )}
             </section>
@@ -213,9 +216,9 @@ export function AppelsCard({ canEdit }: { canEdit: boolean }) {
       <ConfirmDialog
         open={confirmerSfu}
         onOpenChange={setConfirmerSfu}
-        title="Passer les groupes et les réunions au SFU ?"
-        description="Les appels de groupe et les réunions qui commencent passeront par le SFU de Cloudflare, quand tous leurs participants ont la dernière version de l'application. Ceux en cours ne changent pas. Vous pourrez revenir au système actuel à tout moment."
-        confirmLabel="Passer au SFU"
+        title="Passer les groupes et les réunions en SFU Meeting ?"
+        description="Les appels de groupe et les réunions qui commencent passeront en SFU Meeting, quand tous leurs participants ont la dernière version de l'application. Ceux en cours ne changent pas. Vous pourrez revenir en P2P Meeting à tout moment."
+        confirmLabel="Passer en SFU Meeting"
         pending={update.isPending}
         onConfirm={() => appliquerMoteur("sfu")}
       />
