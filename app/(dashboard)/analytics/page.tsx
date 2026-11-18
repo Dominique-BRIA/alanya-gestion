@@ -131,7 +131,7 @@ export default function AnalyticsPage() {
     () =>
       data
         ? [
-            { name: "Relay (TURN)", value: data.calls.relay },
+            { name: "Par relais", value: data.calls.relay },
             { name: "P2P direct", value: data.calls.p2p },
             { name: "Inconnu", value: data.calls.modeUnknown },
           ]
@@ -238,7 +238,7 @@ export default function AnalyticsPage() {
             <StatCard title="Renvoyés au répondeur" value={data.calls.voicemail + data.calls.voicemailAfterRing} icon={Voicemail} color="#0ea5e9" subtitle={`dont ${data.calls.voicemailAfterRing.toLocaleString()} après sonnerie`} />
             <StatCard title="Durée totale" value={formatDuration(data.calls.totalDuration)} icon={Clock} color="#6366f1" subtitle="cumulée" />
             <StatCard
-              title="Taux TURN"
+              title="Taux de relais"
               value={`${data.calls.relayRate}%`}
               icon={Radio}
               color="#f97316"
