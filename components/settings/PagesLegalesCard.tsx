@@ -24,8 +24,8 @@ import { ExternalLink, FileText, Loader2, Save } from "lucide-react";
  * `**gras**`, et une ligne vide entre deux paragraphes.
  */
 const ADRESSES: Record<PageLegale["slug"], string> = {
-  confidentialite: "https://alanyavox.com/confidentialite",
-  conditions: "https://alanyavox.com/conditions",
+  confidentialite: "https://alanyavox.com/webapp/confidentialite",
+  conditions: "https://alanyavox.com/webapp/conditions",
 };
 
 function Editeur({ page, canEdit }: { page: PageLegale; canEdit: boolean }) {
