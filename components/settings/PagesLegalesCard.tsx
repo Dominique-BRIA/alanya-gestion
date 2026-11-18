@@ -59,7 +59,7 @@ function Editeur({ page, canEdit }: { page: PageLegale; canEdit: boolean }) {
     <div className="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
       <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
         <span className="font-medium text-zinc-700 dark:text-zinc-300">
-          {page.parDefaut ? "Version d'origine (jamais modifiée)" : `Version ${page.version}`}
+          {page.parDefaut ? "Version d’origine (jamais modifiée)" : `Version ${page.version}`}
         </span>
         {page.majLe && <span>· mise à jour le {new Date(page.majLe).toLocaleString("fr-FR")}</span>}
         <a href={ADRESSES[page.slug]} target="_blank" rel="noreferrer" className="ml-auto inline-flex items-center gap-1 text-indigo-600 hover:underline">
@@ -119,15 +119,15 @@ export function PagesLegalesCard({ canEdit }: { canEdit: boolean }) {
           <FileText className="h-5 w-5" /> Pages légales
         </CardTitle>
         <CardDescription>
-          Politique de confidentialité et conditions d'utilisation, publiques sur alanyavox.com et ouvertes depuis
-          l'application. Exigées par le Play Store.
+          Politique de confidentialité et conditions d&apos;utilisation, publiques sur alanyavox.com et ouvertes depuis
+          l&apos;application. Exigées par le Play Store.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex gap-2">
           {(["confidentialite", "conditions"] as const).map((s) => (
             <Button key={s} variant={actif === s ? "default" : "outline"} size="sm" onClick={() => setActif(s)}>
-              {s === "confidentialite" ? "Confidentialité" : "Conditions d'utilisation"}
+              {s === "confidentialite" ? "Confidentialité" : "Conditions d’utilisation"}
             </Button>
           ))}
         </div>
