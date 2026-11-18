@@ -359,7 +359,7 @@ export default function ReportsPage() {
                   Play Store pour l'IA générative) : son texte exact. */}
               {r.targetType === "ia" && (
                 <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
-                  <p className="text-xs text-zinc-500">Réponse de l'Assistant Alanya</p>
+                  <p className="text-xs text-zinc-500">Réponse de l&apos;Assistant Alanya</p>
                   <p className="mt-1 whitespace-pre-wrap break-words text-sm">
                     {r.msgContent || <span className="italic text-zinc-400">réponse supprimée</span>}
                   </p>
