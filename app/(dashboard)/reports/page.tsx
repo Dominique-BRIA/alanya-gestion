@@ -7,6 +7,8 @@ import {
   ChevronRight,
   Flag,
   MessageSquare,
+  Users,
+  Bot,
   RefreshCw,
   Search,
   ShieldQuestion,
@@ -279,6 +281,10 @@ export default function ReportsPage() {
                   <CardTitle className="flex items-center gap-2 text-base">
                     {r.targetType === "message" ? (
                       <MessageSquare className="h-4 w-4 text-zinc-400" />
+                    ) : r.targetType === "group" ? (
+                      <Users className="h-4 w-4 text-zinc-400" />
+                    ) : r.targetType === "ia" ? (
+                      <Bot className="h-4 w-4 text-zinc-400" />
                     ) : (
                       <UserX className="h-4 w-4 text-zinc-400" />
                     )}
@@ -337,7 +343,35 @@ export default function ReportsPage() {
                 </div>
               )}
 
+              {/* Un groupe signalé (18/11/2026) : son nom et sa description
+                  au moment du signalement. */}
+              {r.targetType === "group" && (
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                  <p className="text-xs text-zinc-500">
+                    Groupe {r.targetGroupNom ?? "supprimé depuis"}
+                    {r.targetGroupMembres != null ? ` · ${r.targetGroupMembres} membres` : ""}
+                  </p>
+                  {r.msgContent && <p className="mt-1 whitespace-pre-wrap break-words text-sm">{r.msgContent}</p>}
+                </div>
+              )}
+
+              {/* Une réponse de l'Assistant signalée (18/11/2026, exigence du
+                  Play Store pour l'IA générative) : son texte exact. */}
+              {r.targetType === "ia" && (
+                <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900">
+                  <p className="text-xs text-zinc-500">Réponse de l'Assistant Alanya</p>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-sm">
+                    {r.msgContent || <span className="italic text-zinc-400">réponse supprimée</span>}
+                  </p>
+                </div>
+              )}
+
               <div className="flex flex-wrap items-center gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                {r.targetType === "group" && r.targetConvId && (
+                  <Button variant="outline" size="sm" onClick={() => router.push(`/groups/${r.targetConvId}`)}>
+                    Voir le groupe
+                  </Button>
+                )}
                 {(r.targetUserId ?? r.msgSenderId) != null && (
                   <Button
                     variant="outline"

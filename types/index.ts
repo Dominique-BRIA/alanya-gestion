@@ -775,7 +775,12 @@ export type ReportState = "open" | "reviewing" | "actioned" | "dismissed";
 
 export interface Report {
   id: number;
-  targetType: "message" | "user";
+  /** `group` et `ia` (18/11/2026) : un groupe, ou une réponse de l'Assistant. */
+  targetType: "message" | "user" | "group" | "ia";
+  targetConvId?: string | null;
+  targetGroupNom?: string | null;
+  targetGroupMembres?: number | null;
+  targetAiMsgId?: string | null;
   targetMsgId: string | null;
   targetUserId: string | null;
   reason: string;

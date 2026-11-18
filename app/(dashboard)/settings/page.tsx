@@ -13,6 +13,7 @@ import { SettingsPageSkeleton } from "@/components/skeletons";
 import { BadgesCard } from "@/components/settings/BadgesCard";
 import { AppelsCard } from "@/components/settings/AppelsCard";
 import { DeveloppeurCard } from "@/components/settings/DeveloppeurCard";
+import { PagesLegalesCard } from "@/components/settings/PagesLegalesCard";
 import { useToast } from "@/components/ui/toast";
 import { useSettings, useUpdateSettings } from "@/hooks/useSettings";
 import { useSecuritySettings, useUpdateSecuritySettings } from "@/hooks/useSecurity";
@@ -237,6 +238,8 @@ export default function SettingsPage() {
         <AppelsCard canEdit={isSuper} />
 
         <DeveloppeurCard canEdit={isSuper} />
+
+        <PagesLegalesCard canEdit={can("settings.write")} />
 
         <BadgesCard canEdit={can("verifications.decide")} />
 
